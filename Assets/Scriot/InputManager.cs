@@ -5,8 +5,9 @@ public class InputManager : MonoBehaviour
     public PlayerMovement player1;
     public PlayerMovement player2;
 
-    public PlayerPush push1;
-    public PlayerPush push2;
+    
+    public PlayerTackle tackle1;
+    public PlayerTackle tackle2;
 
     void Update()
     {
@@ -27,7 +28,7 @@ public class InputManager : MonoBehaviour
 
         if (Input.GetKeyDown(KeyCode.F))
         {
-            push1.TryPush();
+            tackle1.TryTackle(); 
         }
     }
 
@@ -44,7 +45,7 @@ public class InputManager : MonoBehaviour
 
         if (Input.GetKeyDown(KeyCode.RightShift))
         {
-            push2.TryPush();
+            tackle2.TryTackle(); 
         }
     }
 }
