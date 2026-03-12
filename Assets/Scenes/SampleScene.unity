@@ -534,7 +534,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   pushForce: 8
   pushRange: 8
-  stunDuration: 2
+  stunDuration: 4
+  pushCooldown: 0.5
+  pushAngle: 25
+  coneLength: 2
   playerLayer:
     serializedVersion: 2
     m_Bits: 128
@@ -1035,6 +1038,9 @@ MonoBehaviour:
   pushForce: 8
   pushRange: 8
   stunDuration: 4
+  pushCooldown: 0.5
+  pushAngle: 25
+  coneLength: 2
   playerLayer:
     serializedVersion: 2
     m_Bits: 128
