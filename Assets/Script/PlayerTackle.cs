@@ -13,7 +13,6 @@ public class PlayerTackle : MonoBehaviour
     private Rigidbody rb;
     private float lastTackleTime = 0f;
     
-    
     public bool IsTackling { get; private set; } 
 
     private void Start()
@@ -46,7 +45,6 @@ public class PlayerTackle : MonoBehaviour
 
             if (!hitSomething)
             {
-                
                 Collider[] hits = Physics.OverlapSphere(transform.position + transform.forward, tackleRadius, playerLayer);
                 foreach (Collider hit in hits)
                 {
@@ -59,6 +57,21 @@ public class PlayerTackle : MonoBehaviour
                     {
                         victimRb.AddForce(transform.forward * (tacklePower * 0.5f), ForceMode.Impulse);
                         victim.ApplyPush(tackleStunOnHit);
+                        
+                        EnergyBall[] allBalls = FindObjectsOfType<EnergyBall>();
+                        foreach (EnergyBall ball in allBalls)
+                        {
+                            if (ball.currentOwner != null)
+                            {
+                                if (ball.transform.IsChildOf(victim.transform) || 
+                                    ball.currentOwner == victim.gameObject || 
+                                    ball.currentOwner.transform.IsChildOf(victim.transform))
+                                {
+                                    ball.DropBall();
+                                }
+                            }
+                        }
+
                         hitSomething = true;
                         break; 
                     }
