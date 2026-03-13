@@ -294,6 +294,9 @@ MonoBehaviour:
   pushForce: 8
   pushRange: 8
   stunDuration: 2
+  pushCooldown: 0.5
+  pushAngle: 60
+  coneLength: 1
   playerLayer:
     serializedVersion: 2
     m_Bits: 128
@@ -410,6 +413,8 @@ MonoBehaviour:
   jumpForce: 10
   jumpCooldown: 1
   airMultiplier: 2
+  fallMultiplier: 2.5
+  lowJumpMultiplier: 2
   walkSpeed: 0
   sprintSpeed: 0
   playerHeight: 3
@@ -1847,7 +1852,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 10907, guid: 0000000000000000f000000000000000, type: 0}
+  m_Sprite: {fileID: 0}
   m_Type: 1
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -2573,7 +2578,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &1977060751
 MonoBehaviour:
   m_ObjectHideFlags: 0
