@@ -5,7 +5,7 @@ using UnityEngine.InputSystem;
 
 public class PlayerMovement : MonoBehaviour
 {
-    #region  to be removed when input system is fully implemented
+    #region to be removed when input system is fully implemented
     float stunTimer;
     bool isStunned = false;
     #endregion
@@ -15,13 +15,22 @@ public class PlayerMovement : MonoBehaviour
     float knockdownTimer;
     public float knockdownDuration = 2f;
 
+    [Header("Movement Settings")]
     public float moveSpeed;
     public float rotationSpeed = 5000f;
     public float groundDrag;
+
+    [Header("Jumping Settings")]
     public float jumpForce;
     public float jumpCooldown;
     public float airMultiplier;
     bool readyToJump;
+
+    [Header("Natural Jump Polish")]
+
+    public float fallMultiplier = 2.5f;
+
+    public float lowJumpMultiplier = 2f;
 
     [HideInInspector] public float walkSpeed;
     [HideInInspector] public float sprintSpeed;
@@ -58,24 +67,19 @@ public class PlayerMovement : MonoBehaviour
         if (isStunned)
         {
             stunTimer -= Time.deltaTime;
-
-            if (stunTimer <= 0f)
-                isStunned = false;
+            if (stunTimer <= 0f) isStunned = false;
         }
         #endregion
 
-        // handle knockdown timer
+
         if (isKnockedDown)
         {
             knockdownTimer -= Time.deltaTime;
-
             if (knockdownTimer <= 0f)
             {
                 isKnockedDown = false;
-
                 rb.angularVelocity = Vector3.zero;
                 rb.freezeRotation = true;
-
                 transform.rotation = Quaternion.identity;
             }
         }
@@ -94,6 +98,7 @@ public class PlayerMovement : MonoBehaviour
     private void FixedUpdate()
     {
         MovePlayer();
+        BetterJumpPhysics();
     }
 
     public void OnMove(InputAction.CallbackContext context)
@@ -101,16 +106,17 @@ public class PlayerMovement : MonoBehaviour
         Vector2 inputVec = context.ReadValue<Vector2>();
         horizontalInput = inputVec.x;
         verticalInput = inputVec.y;
-        Debug.Log($"Moving: {inputVec}");
     }
 
     public void OnJump(InputAction.CallbackContext context)
     {
+
         jumpInput = context.action.IsPressed();
     }
 
     private void MyInput()
     {
+
         if (jumpInput && readyToJump && grounded)
         {
             readyToJump = false;
@@ -121,13 +127,13 @@ public class PlayerMovement : MonoBehaviour
 
     private void MovePlayer()
     {
-        #region to be removed when input system is fully implemented
-        if (isStunned)
+        if (GetComponent<PlayerTackle>() != null && GetComponent<PlayerTackle>().IsTackling)
             return;
+        #region to be removed when input system is fully implemented
+        if (isStunned) return;
         #endregion
 
-        if (isKnockedDown)
-            return;
+        if (isKnockedDown) return;
 
         Vector3 camForward = cameraTransform.forward;
         Vector3 camRight = cameraTransform.right;
@@ -149,8 +155,24 @@ public class PlayerMovement : MonoBehaviour
         rb.AddForce(moveDirection * moveSpeed * currentMultiplier, ForceMode.Force);
     }
 
+    private void BetterJumpPhysics()
+    {
+
+        if (rb.linearVelocity.y < 0)
+        {
+            rb.linearVelocity += Vector3.up * Physics.gravity.y * (fallMultiplier - 1) * Time.fixedDeltaTime;
+        }
+
+        else if (rb.linearVelocity.y > 0 && !jumpInput)
+        {
+            rb.linearVelocity += Vector3.up * Physics.gravity.y * (lowJumpMultiplier - 1) * Time.fixedDeltaTime;
+        }
+    }
+
     private void SpeedControl()
     {
+        if (GetComponent<PlayerTackle>() != null && GetComponent<PlayerTackle>().IsTackling)
+            return;
         Vector3 flatVel = new Vector3(rb.linearVelocity.x, 0f, rb.linearVelocity.z);
 
         if (flatVel.magnitude > moveSpeed)
@@ -162,6 +184,7 @@ public class PlayerMovement : MonoBehaviour
 
     private void Jump()
     {
+
         rb.linearVelocity = new Vector3(rb.linearVelocity.x, 0f, rb.linearVelocity.z);
         rb.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
     }
@@ -189,7 +212,6 @@ public class PlayerMovement : MonoBehaviour
 
         rb.freezeRotation = false;
 
-        // physics tumble
         rb.AddTorque(transform.right * 15f, ForceMode.Impulse);
         rb.AddForce(Vector3.up * 3f, ForceMode.Impulse);
     }
