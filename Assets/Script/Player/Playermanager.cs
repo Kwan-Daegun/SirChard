@@ -1,10 +1,10 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-public class GameManager : MonoBehaviour
+public class PlayerManager : MonoBehaviour
 {
     // Singleton instance so other scripts can access it easily
-    public static GameManager Instance;
+    public static PlayerManager Instance;
 
     [Header("UI Panels")]
     public GameObject pausePanel;
