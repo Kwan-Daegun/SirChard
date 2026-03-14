@@ -10,7 +10,7 @@ public class PlayerMovement : MonoBehaviour
     bool isStunned = false;
     #endregion
 
-    // NEW: knockdown variables
+    
     bool isKnockedDown = false;
     float knockdownTimer;
     public float knockdownDuration = 2f;

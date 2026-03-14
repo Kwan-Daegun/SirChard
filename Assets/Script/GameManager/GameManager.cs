@@ -1,23 +1,31 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.InputSystem;
 
 public class GameManager : MonoBehaviour
 {
-    // Singleton instance so other scripts can access it easily
     public static GameManager Instance;
 
-    [Header("UI Panels")]
     public GameObject pausePanel;
     public GameObject controlsPanel;
     public GameObject creditsPanel;
     public GameObject winPanel;
     public GameObject losePanel;
 
+    public Transform player1;
+    public Transform player2;
+    public Transform player3;
+    public Transform player4;
+
+    public Transform spawn1;
+    public Transform spawn2;
+    public Transform spawn3;
+    public Transform spawn4;
+
     private bool isPaused = false;
 
     private void Awake()
     {
-        // Set up the Singleton
         if (Instance == null)
         {
             Instance = this;
@@ -26,40 +34,75 @@ public class GameManager : MonoBehaviour
         {
             Destroy(gameObject);
         }
+
+        if (player1 != null && spawn1 != null)
+        {
+            var rb = player1.GetComponent<Rigidbody>();
+            if (rb != null) rb.position = spawn1.position;
+            else player1.position = spawn1.position;
+        }
+
+        if (player2 != null && spawn2 != null)
+        {
+            var rb = player2.GetComponent<Rigidbody>();
+            if (rb != null) rb.position = spawn2.position;
+            else player2.position = spawn2.position;
+        }
+
+        if (player3 != null && spawn3 != null)
+        {
+            var rb = player3.GetComponent<Rigidbody>();
+            if (rb != null) rb.position = spawn3.position;
+            else player3.position = spawn3.position;
+        }
+
+        if (player4 != null && spawn4 != null)
+        {
+            var rb = player4.GetComponent<Rigidbody>();
+            if (rb != null) rb.position = spawn4.position;
+            else player4.position = spawn4.position;
+        }
+
+        Debug.Log("Spawning Player1 at " + spawn1.position);
     }
 
     private void Start()
     {
-        // Ensure all panels are hidden and time is running when the scene starts
         Time.timeScale = 1f;
         HideAllPanels();
+        int playerCount = PlayerPrefs.GetInt("PlayerCount", 2);
+
+        CameraControl cam = FindObjectOfType<CameraControl>();
+
+        cam.SetTargets(player1, player2, player3, player4, playerCount);
+        cam.SetStartPositionAndSize();
     }
 
     private void Update()
     {
-        // Press Escape to toggle pause
-        if (Input.GetKeyDown(KeyCode.Escape))
+        bool pausePressed = Input.GetKeyDown(KeyCode.Escape);
+
+        foreach (var pad in Gamepad.all)
         {
-            // Don't allow pausing if we already won or lost
+            if (pad.startButton.wasPressedThisFrame)
+                pausePressed = true;
+        }
+
+        if (pausePressed)
+        {
             if (winPanel.activeSelf || losePanel.activeSelf) return;
 
             if (isPaused)
-            {
                 ResumeGame();
-            }
             else
-            {
                 PauseGame();
-            }
         }
     }
-
-    // --- Core Game States ---
 
     public void PauseGame()
     {
         isPaused = true;
-        Time.timeScale = 0f; // Freezes game time
+        Time.timeScale = 0f;
         HideAllPanels();
         pausePanel.SetActive(true);
     }
@@ -67,25 +110,23 @@ public class GameManager : MonoBehaviour
     public void ResumeGame()
     {
         isPaused = false;
-        Time.timeScale = 1f; // Resumes game time
+        Time.timeScale = 1f;
         HideAllPanels();
     }
 
     public void WinGame()
     {
-        Time.timeScale = 0f; // Stop the game in the background
+        Time.timeScale = 0f;
         HideAllPanels();
         winPanel.SetActive(true);
     }
 
     public void LoseGame()
     {
-        Time.timeScale = 0f; // Stop the game in the background
+        Time.timeScale = 0f;
         HideAllPanels();
         losePanel.SetActive(true);
     }
-
-    // --- UI Navigation ---
 
     public void ShowControls()
     {
@@ -101,7 +142,6 @@ public class GameManager : MonoBehaviour
 
     public void BackToPauseMenu()
     {
-        // Useful for a "Back" button on the Controls or Credits panels
         HideAllPanels();
         pausePanel.SetActive(true);
     }
@@ -115,11 +155,9 @@ public class GameManager : MonoBehaviour
         if (losePanel != null) losePanel.SetActive(false);
     }
 
-    // --- Scene Management ---
-
     public void RestartGame()
     {
-        Time.timeScale = 1f; // Always reset time scale before loading a scene!
+        Time.timeScale = 1f;
         SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
     }
 
