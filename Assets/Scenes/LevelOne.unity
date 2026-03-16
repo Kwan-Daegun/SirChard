@@ -499,7 +499,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 155627015}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 62899f850307741f2a39c98a8b639597, type: 3}
   m_Name: 
@@ -609,6 +609,22 @@ MonoBehaviour:
         m_CallState: 2
     m_ActionId: 93a4b93c-34a9-45b5-95ba-f8a32c566f56
     m_ActionName: Player/Jump
+  - m_PersistentCalls:
+      m_Calls: []
+    m_ActionId: 22cf68bb-d363-4750-bbea-dc303594a4ee
+    m_ActionName: 'Player2/Move[/Keyboard/upArrow,/Keyboard/downArrow,/Keyboard/leftArrow,/Keyboard/rightArrow]'
+  - m_PersistentCalls:
+      m_Calls: []
+    m_ActionId: 538410da-97bc-4932-b9ad-408a9f2cc2ac
+    m_ActionName: Player2/Look
+  - m_PersistentCalls:
+      m_Calls: []
+    m_ActionId: ea646138-7cf8-4bc4-a6fd-733be035e60f
+    m_ActionName: 'Player2/Fire[/Keyboard/leftShift]'
+  - m_PersistentCalls:
+      m_Calls: []
+    m_ActionId: 5fc7519a-bed3-4383-9a55-093e43a625f6
+    m_ActionName: Player2/Jump
   m_NeverAutoSwitchControlSchemes: 1
   m_DefaultControlScheme: Keyboard&Mouse
   m_DefaultActionMap: Player
@@ -678,10 +694,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d3a1cafb53d23ab4aa25271060e17a79, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  player1: {fileID: 0}
-  player2: {fileID: 0}
-  tackle1: {fileID: 0}
-  tackle2: {fileID: 0}
+  player1: {fileID: 155627021}
+  player2: {fileID: 305284830}
+  tackle1: {fileID: 155627023}
+  tackle2: {fileID: 305284836}
   player1Input: {fileID: 155627022}
   player2Input: {fileID: 305284829}
   player3Input: {fileID: 1289081962}
@@ -972,7 +988,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 305284828}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 62899f850307741f2a39c98a8b639597, type: 3}
   m_Name: 
@@ -4034,6 +4050,22 @@ MonoBehaviour:
       m_Calls: []
     m_ActionId: 93a4b93c-34a9-45b5-95ba-f8a32c566f56
     m_ActionName: Player/Jump
+  - m_PersistentCalls:
+      m_Calls: []
+    m_ActionId: 22cf68bb-d363-4750-bbea-dc303594a4ee
+    m_ActionName: 'Player2/Move[/Keyboard/upArrow,/Keyboard/downArrow,/Keyboard/leftArrow,/Keyboard/rightArrow]'
+  - m_PersistentCalls:
+      m_Calls: []
+    m_ActionId: 538410da-97bc-4932-b9ad-408a9f2cc2ac
+    m_ActionName: Player2/Look
+  - m_PersistentCalls:
+      m_Calls: []
+    m_ActionId: ea646138-7cf8-4bc4-a6fd-733be035e60f
+    m_ActionName: 'Player2/Fire[/Keyboard/leftShift]'
+  - m_PersistentCalls:
+      m_Calls: []
+    m_ActionId: 5fc7519a-bed3-4383-9a55-093e43a625f6
+    m_ActionName: Player2/Jump
   m_NeverAutoSwitchControlSchemes: 1
   m_DefaultControlScheme: Gamepad
   m_DefaultActionMap: Player
@@ -4908,7 +4940,7 @@ SceneRoots:
   - {fileID: 643827646}
   - {fileID: 1809240754}
   - {fileID: 1737070782}
-  - {fileID: 1882534324}
   - {fileID: 614823504}
+  - {fileID: 1882534324}
   - {fileID: 1103905439}
   - {fileID: 1396207309}
