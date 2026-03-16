@@ -120,9 +120,16 @@ public class InputManager : MonoBehaviour
 
     void Update()
     {
-        if (player1Input == null) HandlePlayer1();
-        if (player2Input == null) HandlePlayer2();
+        bool p1HasController = player1Input != null && player1Input.devices.Count > 0;
+        bool p2HasController = player2Input != null && player2Input.devices.Count > 0;
+
+        if (!p1HasController)
+            HandlePlayer1();
+
+        if (!p2HasController)
+            HandlePlayer2();
     }
+
 
     void HandlePlayer1()
     {
