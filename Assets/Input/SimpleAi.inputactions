@@ -222,6 +222,17 @@
                 },
                 {
                     "name": "",
+                    "id": "4479eed5-ba96-4a25-a99b-d16446faa872",
+                    "path": "<HID:: USB Gamepad          >/hat",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": ";Gamepad",
+                    "action": "Move",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
                     "id": "3e5f5442-8668-4b27-a940-df99bad7e831",
                     "path": "<Joystick>/{Hatswitch}",
                     "interactions": "",
@@ -552,6 +563,17 @@
                 },
                 {
                     "name": "",
+                    "id": "ad4fc770-6532-41cb-bc7e-ce9c408c4e0d",
+                    "path": "<HID:: USB Gamepad          >/stick",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": ";Gamepad",
+                    "action": "Move",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
                     "id": "a0d4be60-903c-4b2d-aa5c-d24701cb937f",
                     "path": "<Joystick>/{Hatswitch}",
                     "interactions": "",
@@ -711,6 +733,17 @@
                     "interactions": "",
                     "processors": "",
                     "groups": ";Gamepad",
+                    "action": "Jump",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "8dd48d52-446b-49a9-b26e-2f559b2780a2",
+                    "path": "<HID:: USB Gamepad          >/button3",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
                     "action": "Jump",
                     "isComposite": false,
                     "isPartOfComposite": false

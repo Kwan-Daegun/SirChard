@@ -784,6 +784,26 @@ MonoBehaviour:
       m_Calls: []
     m_ActionId: edc347b9-9aef-493f-876c-fe0f12eaa705
     m_ActionName: UI/TrackedDeviceOrientation
+  - m_PersistentCalls:
+      m_Calls: []
+    m_ActionId: 93a4b93c-34a9-45b5-95ba-f8a32c566f56
+    m_ActionName: Player/Jump
+  - m_PersistentCalls:
+      m_Calls: []
+    m_ActionId: 22cf68bb-d363-4750-bbea-dc303594a4ee
+    m_ActionName: 'Player2/Move[/Keyboard/upArrow,/Keyboard/downArrow,/Keyboard/leftArrow,/Keyboard/rightArrow]'
+  - m_PersistentCalls:
+      m_Calls: []
+    m_ActionId: 538410da-97bc-4932-b9ad-408a9f2cc2ac
+    m_ActionName: Player2/Look
+  - m_PersistentCalls:
+      m_Calls: []
+    m_ActionId: ea646138-7cf8-4bc4-a6fd-733be035e60f
+    m_ActionName: 'Player2/Fire[/Keyboard/leftShift]'
+  - m_PersistentCalls:
+      m_Calls: []
+    m_ActionId: 5fc7519a-bed3-4383-9a55-093e43a625f6
+    m_ActionName: Player2/Jump
   m_NeverAutoSwitchControlSchemes: 1
   m_DefaultControlScheme: Player1
   m_DefaultActionMap: Player
@@ -1347,10 +1367,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0cd44c1031e13a943bb63640046fad76, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_UiScaleMode: 0
+  m_UiScaleMode: 1
   m_ReferencePixelsPerUnit: 100
   m_ScaleFactor: 1
-  m_ReferenceResolution: {x: 800, y: 600}
+  m_ReferenceResolution: {x: 1920, y: 1080}
   m_ScreenMatchMode: 0
   m_MatchWidthOrHeight: 0
   m_PhysicalUnit: 3
