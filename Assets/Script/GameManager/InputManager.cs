@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.Utilities;
 
 public class InputManager : MonoBehaviour
 {
@@ -13,10 +14,10 @@ public class InputManager : MonoBehaviour
     public PlayerInput player3Input;
     public PlayerInput player4Input;
 
-    int p1Device = -1;
-    int p2Device = -1;
-    int p3Device = -1;
-    int p4Device = -1;
+    Gamepad p1Pad;
+    Gamepad p2Pad;
+    Gamepad p3Pad;
+    Gamepad p4Pad;
 
     void OnEnable()
     {
@@ -36,55 +37,52 @@ public class InputManager : MonoBehaviour
     void AssignControllers()
     {
         int playerCount = PlayerPrefs.GetInt("PlayerCount", 2);
-        int gamepadIndex = 0;
-
         var gamepads = Gamepad.all;
-        int gamepadCount = gamepads.Count;
 
-        if (player1Input != null && gamepadCount > gamepadIndex)
-        {
-            var pad = gamepads[gamepadIndex];
-            player1Input.SwitchCurrentControlScheme("Gamepad", pad);
-            p1Device = pad.deviceId;
-            gamepadIndex++;
-        }
-
-        if (player2Input != null && gamepadCount > gamepadIndex)
-        {
-            var pad = gamepads[gamepadIndex];
-            player2Input.SwitchCurrentControlScheme("Gamepad", pad);
-            p2Device = pad.deviceId;
-            gamepadIndex++;
-        }
-
-        if (playerCount >= 3 && player3Input != null)
-        {
-            if (gamepadCount > gamepadIndex)
-            {
-                var pad = gamepads[gamepadIndex];
-                player3Input.SwitchCurrentControlScheme("Gamepad", pad);
-                p3Device = pad.deviceId;
-                gamepadIndex++;
-            }
-        }
-        else if (player3Input != null)
+        if (playerCount < 3 && player3Input != null)
         {
             Destroy(player3Input.gameObject);
+            player3Input = null;
+            p3Pad = null;
         }
 
-        if (playerCount >= 4 && player4Input != null)
-        {
-            if (gamepadCount > gamepadIndex)
-            {
-                var pad = gamepads[gamepadIndex];
-                player4Input.SwitchCurrentControlScheme("Gamepad", pad);
-                p4Device = pad.deviceId;
-                gamepadIndex++;
-            }
-        }
-        else if (player4Input != null)
+        if (playerCount < 4 && player4Input != null)
         {
             Destroy(player4Input.gameObject);
+            player4Input = null;
+            p4Pad = null;
+        }
+
+        if (p1Pad != null && !ContainsGamepad(gamepads, p1Pad)) p1Pad = null;
+        if (p2Pad != null && !ContainsGamepad(gamepads, p2Pad)) p2Pad = null;
+        if (p3Pad != null && !ContainsGamepad(gamepads, p3Pad)) p3Pad = null;
+        if (p4Pad != null && !ContainsGamepad(gamepads, p4Pad)) p4Pad = null;
+
+        foreach (var pad in gamepads)
+        {
+            if (pad == p1Pad || pad == p2Pad || pad == p3Pad || pad == p4Pad)
+                continue;
+
+            if (p1Pad == null && player1Input != null)
+            {
+                SetGamepad(player1Input, pad);
+                p1Pad = pad;
+            }
+            else if (p2Pad == null && player2Input != null)
+            {
+                SetGamepad(player2Input, pad);
+                p2Pad = pad;
+            }
+            else if (p3Pad == null && player3Input != null)
+            {
+                SetGamepad(player3Input, pad);
+                p3Pad = pad;
+            }
+            else if (p4Pad == null && player4Input != null)
+            {
+                SetGamepad(player4Input, pad);
+                p4Pad = pad;
+            }
         }
     }
 
@@ -92,30 +90,65 @@ public class InputManager : MonoBehaviour
     {
         if (device is not Gamepad pad) return;
 
+        if (change == InputDeviceChange.Disconnected || change == InputDeviceChange.Removed)
+        {
+            if (pad == p1Pad) p1Pad = null;
+            if (pad == p2Pad) p2Pad = null;
+            if (pad == p3Pad) p3Pad = null;
+            if (pad == p4Pad) p4Pad = null;
+
+            AssignControllers();
+        }
+
         if (change == InputDeviceChange.Reconnected || change == InputDeviceChange.Added)
         {
             RestoreController(pad);
-        }
-
-        if (change == InputDeviceChange.Disconnected || change == InputDeviceChange.Removed)
-        {
-            AssignControllers();
         }
     }
 
     void RestoreController(Gamepad pad)
     {
-        if (pad.deviceId == p1Device && player1Input != null)
-            player1Input.SwitchCurrentControlScheme("Gamepad", pad);
+        if (pad == p1Pad && player1Input != null)
+        {
+            SetGamepad(player1Input, pad);
+            return;
+        }
 
-        if (pad.deviceId == p2Device && player2Input != null)
-            player2Input.SwitchCurrentControlScheme("Gamepad", pad);
+        if (pad == p2Pad && player2Input != null)
+        {
+            SetGamepad(player2Input, pad);
+            return;
+        }
 
-        if (pad.deviceId == p3Device && player3Input != null)
-            player3Input.SwitchCurrentControlScheme("Gamepad", pad);
+        if (pad == p3Pad && player3Input != null)
+        {
+            SetGamepad(player3Input, pad);
+            return;
+        }
 
-        if (pad.deviceId == p4Device && player4Input != null)
-            player4Input.SwitchCurrentControlScheme("Gamepad", pad);
+        if (pad == p4Pad && player4Input != null)
+        {
+            SetGamepad(player4Input, pad);
+            return;
+        }
+
+        AssignControllers();
+    }
+
+    void SetGamepad(PlayerInput input, Gamepad pad)
+    {
+        input.user.UnpairDevices();
+        input.SwitchCurrentControlScheme("Gamepad", pad);
+    }
+
+    bool ContainsGamepad(ReadOnlyArray<Gamepad> list, Gamepad target)
+    {
+        foreach (var pad in list)
+        {
+            if (pad == target)
+                return true;
+        }
+        return false;
     }
 
     void Update()
@@ -129,7 +162,6 @@ public class InputManager : MonoBehaviour
         if (!p2HasController)
             HandlePlayer2();
     }
-
 
     void HandlePlayer1()
     {
@@ -145,9 +177,7 @@ public class InputManager : MonoBehaviour
         player1.SetInput(move, jump);
 
         if (Input.GetKeyDown(KeyCode.F))
-        {
             tackle1.TryTackle();
-        }
     }
 
     void HandlePlayer2()
@@ -164,8 +194,6 @@ public class InputManager : MonoBehaviour
         player2.SetInput(move, jump);
 
         if (Input.GetKeyDown(KeyCode.RightShift))
-        {
             tackle2.TryTackle();
-        }
     }
 }
