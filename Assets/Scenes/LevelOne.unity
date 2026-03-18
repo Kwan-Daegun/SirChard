@@ -714,8 +714,8 @@ MonoBehaviour:
   player2: {fileID: 305284830}
   tackle1: {fileID: 155627023}
   tackle2: {fileID: 305284836}
-  player1Input: {fileID: 155627022}
-  player2Input: {fileID: 305284829}
+  player1Input: {fileID: 0}
+  player2Input: {fileID: 0}
   player3Input: {fileID: 1289081962}
   player4Input: {fileID: 1679956151}
 --- !u!1 &206382490
@@ -1742,6 +1742,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 76f4a453935bc8d44b34d43def5a4df9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  energyBall: {fileID: 0}
+  pointsPerSecond: 10
+  players: []
 --- !u!1 &634603658
 GameObject:
   m_ObjectHideFlags: 0
@@ -3280,7 +3283,7 @@ GameObject:
   - component: {fileID: 1289081969}
   m_Layer: 7
   m_Name: Player3
-  m_TagString: Player2
+  m_TagString: Player3
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -4009,7 +4012,7 @@ GameObject:
   - component: {fileID: 1679956158}
   m_Layer: 7
   m_Name: Player4
-  m_TagString: Player2
+  m_TagString: Player4
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
