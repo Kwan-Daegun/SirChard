@@ -336,6 +336,7 @@ GameObject:
   - component: {fileID: 155627021}
   - component: {fileID: 155627022}
   - component: {fileID: 155627023}
+  - component: {fileID: 155627024}
   m_Layer: 7
   m_Name: Player1
   m_TagString: Player1
@@ -650,6 +651,21 @@ MonoBehaviour:
   playerLayer:
     serializedVersion: 2
     m_Bits: 128
+--- !u!114 &155627024
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 155627015}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ecadeda736eb533438b26e496c176c93, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  playerIndex: 1
+  bodyRenderer: {fileID: 0}
+  movement: {fileID: 0}
 --- !u!1 &203434147
 GameObject:
   m_ObjectHideFlags: 0
@@ -974,6 +990,7 @@ GameObject:
   - component: {fileID: 305284830}
   - component: {fileID: 305284829}
   - component: {fileID: 305284836}
+  - component: {fileID: 305284837}
   m_Layer: 7
   m_Name: Player2
   m_TagString: Player2
@@ -1288,6 +1305,21 @@ MonoBehaviour:
   playerLayer:
     serializedVersion: 2
     m_Bits: 128
+--- !u!114 &305284837
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 305284828}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ecadeda736eb533438b26e496c176c93, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  playerIndex: 2
+  bodyRenderer: {fileID: 0}
+  movement: {fileID: 0}
 --- !u!1 &405452907
 GameObject:
   m_ObjectHideFlags: 0
@@ -2002,6 +2034,10 @@ MonoBehaviour:
   dropPopForce: 5
   pickupCooldown: 1
   currentOwner: {fileID: 0}
+  ballColorIdle: {r: 1, g: 0.85, b: 0.1, a: 1}
+  ballColorFlying: {r: 1, g: 0.55, b: 0.05, a: 1}
+  ballColorOwned: {r: 0.3, g: 1, b: 0.4, a: 1}
+  ballColorDrop: {r: 1, g: 0.2, b: 0.1, a: 1}
 --- !u!54 &643827648
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -2092,6 +2128,7 @@ GameObject:
   m_Component:
   - component: {fileID: 705507995}
   - component: {fileID: 705507994}
+  - component: {fileID: 705507996}
   m_Layer: 0
   m_Name: Directional Light
   m_TagString: Untagged
@@ -2179,6 +2216,29 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: -90, y: -30, z: 0}
+--- !u!114 &705507996
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 705507993}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 474bcb49853aa07438625e644c072ee6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Version: 3
+  m_UsePipelineSettings: 1
+  m_AdditionalLightsShadowResolutionTier: 2
+  m_LightLayerMask: 1
+  m_RenderingLayers: 1
+  m_CustomShadowLayers: 0
+  m_ShadowLayerMask: 1
+  m_ShadowRenderingLayers: 1
+  m_LightCookieSize: {x: 1, y: 1}
+  m_LightCookieOffset: {x: 0, y: 0}
+  m_SoftShadowQuality: 0
 --- !u!1 &705733888
 GameObject:
   m_ObjectHideFlags: 0
@@ -3217,6 +3277,7 @@ GameObject:
   - component: {fileID: 1289081963}
   - component: {fileID: 1289081962}
   - component: {fileID: 1289081961}
+  - component: {fileID: 1289081969}
   m_Layer: 7
   m_Name: Player3
   m_TagString: Player2
@@ -3531,6 +3592,21 @@ Transform:
   - {fileID: 1653001779}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1289081969
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1289081960}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ecadeda736eb533438b26e496c176c93, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  playerIndex: 3
+  bodyRenderer: {fileID: 0}
+  movement: {fileID: 0}
 --- !u!1 &1315311887
 GameObject:
   m_ObjectHideFlags: 0
@@ -3930,6 +4006,7 @@ GameObject:
   - component: {fileID: 1679956152}
   - component: {fileID: 1679956151}
   - component: {fileID: 1679956150}
+  - component: {fileID: 1679956158}
   m_Layer: 7
   m_Name: Player4
   m_TagString: Player2
@@ -4220,6 +4297,21 @@ Transform:
   - {fileID: 795384719}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1679956158
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1679956149}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ecadeda736eb533438b26e496c176c93, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  playerIndex: 4
+  bodyRenderer: {fileID: 0}
+  movement: {fileID: 0}
 --- !u!1 &1681845286
 GameObject:
   m_ObjectHideFlags: 0
@@ -4383,11 +4475,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 25be3c54f4fdfac4492b1f90d2c56cc1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  pausePanel: {fileID: 0}
-  controlsPanel: {fileID: 0}
-  creditsPanel: {fileID: 0}
-  winPanel: {fileID: 0}
-  losePanel: {fileID: 0}
   player1: {fileID: 155627020}
   player2: {fileID: 305284835}
   player3: {fileID: 1289081968}
