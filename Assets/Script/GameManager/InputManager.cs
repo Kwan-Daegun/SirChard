@@ -189,11 +189,11 @@ public class InputManager : MonoBehaviour
             (Input.GetKey(KeyCode.UpArrow) ? 1 : 0) - (Input.GetKey(KeyCode.DownArrow) ? 1 : 0)
         );
 
-        bool jump = Input.GetKey(KeyCode.RightControl);
+        bool jump = Input.GetKey(KeyCode.Keypad0);
 
         player2.SetInput(move, jump);
 
-        if (Input.GetKeyDown(KeyCode.RightShift))
+        if (Input.GetKeyDown(KeyCode.KeypadPeriod))
             tackle2.TryTackle();
     }
 }
