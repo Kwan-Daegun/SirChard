@@ -610,22 +610,6 @@ MonoBehaviour:
         m_CallState: 2
     m_ActionId: 93a4b93c-34a9-45b5-95ba-f8a32c566f56
     m_ActionName: Player/Jump
-  - m_PersistentCalls:
-      m_Calls: []
-    m_ActionId: 22cf68bb-d363-4750-bbea-dc303594a4ee
-    m_ActionName: 'Player2/Move[/Keyboard/upArrow,/Keyboard/downArrow,/Keyboard/leftArrow,/Keyboard/rightArrow]'
-  - m_PersistentCalls:
-      m_Calls: []
-    m_ActionId: 538410da-97bc-4932-b9ad-408a9f2cc2ac
-    m_ActionName: Player2/Look
-  - m_PersistentCalls:
-      m_Calls: []
-    m_ActionId: ea646138-7cf8-4bc4-a6fd-733be035e60f
-    m_ActionName: 'Player2/Fire[/Keyboard/leftShift]'
-  - m_PersistentCalls:
-      m_Calls: []
-    m_ActionId: 5fc7519a-bed3-4383-9a55-093e43a625f6
-    m_ActionName: Player2/Jump
   m_NeverAutoSwitchControlSchemes: 1
   m_DefaultControlScheme: Keyboard&Mouse
   m_DefaultActionMap: Player
@@ -1647,7 +1631,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7078783431860182994, guid: f2d2a75468b7fc745a588323e1062013, type: 3}
       propertyPath: m_MinSize
-      value: 7
+      value: 10
       objectReference: {fileID: 0}
     - target: {fileID: 7078783431860182994, guid: f2d2a75468b7fc745a588323e1062013, type: 3}
       propertyPath: m_DampTime
@@ -3425,22 +3409,6 @@ MonoBehaviour:
         m_CallState: 2
     m_ActionId: 93a4b93c-34a9-45b5-95ba-f8a32c566f56
     m_ActionName: Player/Jump
-  - m_PersistentCalls:
-      m_Calls: []
-    m_ActionId: 22cf68bb-d363-4750-bbea-dc303594a4ee
-    m_ActionName: 'Player2/Move[/Keyboard/upArrow,/Keyboard/downArrow,/Keyboard/leftArrow,/Keyboard/rightArrow]'
-  - m_PersistentCalls:
-      m_Calls: []
-    m_ActionId: 538410da-97bc-4932-b9ad-408a9f2cc2ac
-    m_ActionName: Player2/Look
-  - m_PersistentCalls:
-      m_Calls: []
-    m_ActionId: ea646138-7cf8-4bc4-a6fd-733be035e60f
-    m_ActionName: 'Player2/Fire[/Keyboard/leftShift]'
-  - m_PersistentCalls:
-      m_Calls: []
-    m_ActionId: 5fc7519a-bed3-4383-9a55-093e43a625f6
-    m_ActionName: Player2/Jump
   m_NeverAutoSwitchControlSchemes: 1
   m_DefaultControlScheme: Gamepad
   m_DefaultActionMap: Player
@@ -4083,7 +4051,19 @@ MonoBehaviour:
     m_ActionId: da28090b-d35b-4353-ad09-779814fc88b9
     m_ActionName: 'Player/Look[/Mouse/delta,/Pen/delta]'
   - m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 1679956150}
+        m_TargetAssemblyTypeName: PlayerTackle, Assembly-CSharp
+        m_MethodName: TryTackle
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
     m_ActionId: 22aed334-50bd-47ed-a3bf-6bc1bd888303
     m_ActionName: 'Player/Fire[/Mouse/leftButton]'
   - m_PersistentCalls:
@@ -4127,25 +4107,21 @@ MonoBehaviour:
     m_ActionId: edc347b9-9aef-493f-876c-fe0f12eaa705
     m_ActionName: UI/TrackedDeviceOrientation
   - m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 1679956152}
+        m_TargetAssemblyTypeName: PlayerMovement, Assembly-CSharp
+        m_MethodName: OnJump
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
     m_ActionId: 93a4b93c-34a9-45b5-95ba-f8a32c566f56
     m_ActionName: Player/Jump
-  - m_PersistentCalls:
-      m_Calls: []
-    m_ActionId: 22cf68bb-d363-4750-bbea-dc303594a4ee
-    m_ActionName: 'Player2/Move[/Keyboard/upArrow,/Keyboard/downArrow,/Keyboard/leftArrow,/Keyboard/rightArrow]'
-  - m_PersistentCalls:
-      m_Calls: []
-    m_ActionId: 538410da-97bc-4932-b9ad-408a9f2cc2ac
-    m_ActionName: Player2/Look
-  - m_PersistentCalls:
-      m_Calls: []
-    m_ActionId: ea646138-7cf8-4bc4-a6fd-733be035e60f
-    m_ActionName: 'Player2/Fire[/Keyboard/leftShift]'
-  - m_PersistentCalls:
-      m_Calls: []
-    m_ActionId: 5fc7519a-bed3-4383-9a55-093e43a625f6
-    m_ActionName: Player2/Jump
   m_NeverAutoSwitchControlSchemes: 1
   m_DefaultControlScheme: Gamepad
   m_DefaultActionMap: Player
