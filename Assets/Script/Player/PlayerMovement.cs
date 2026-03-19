@@ -192,6 +192,22 @@ public class PlayerMovement : MonoBehaviour
         readyToJump = true;
     }
 
+    // Add this at the bottom of PlayerMovement.cs
+    public void ResetPlayerStates()
+    {
+        isKnockedDown = false;
+        isStunned = false;
+        stunTimer = 0;
+        knockdownTimer = 0;
+
+        // Ensure rotation is locked again
+        rb.freezeRotation = true;
+        transform.rotation = Quaternion.identity;
+
+        // Tell visuals to reset if you have the OnGetUp method
+        _visuals?.OnGetUp();
+    }
+
     #region to be removed when input system is fully implemented
     public void SetInput(Vector2 moveInput, bool jumpPressed)
     {

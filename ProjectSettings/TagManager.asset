@@ -8,6 +8,8 @@ TagManager:
   - Player1
   - Player3
   - Player4
+  - Hazzard
+  - Hazard
   layers:
   - Default
   - TransparentFX
