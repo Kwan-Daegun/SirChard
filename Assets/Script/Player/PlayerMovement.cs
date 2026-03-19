@@ -227,17 +227,12 @@ public class PlayerMovement : MonoBehaviour
     {
         isKnockedDown = false;
         isStunned = false;
-        stunTimer = 0;
-        knockdownTimer = 0;
-
-        // Ensure rotation is locked again
+        stunTimer = 0f;
+        knockdownTimer = 0f;
         rb.freezeRotation = true;
         transform.rotation = Quaternion.identity;
-
-        // Tell visuals to reset if you have the OnGetUp method
         _visuals?.OnGetUp();
     }
-
     #region to be removed when input system is fully implemented
     public void SetInput(Vector2 moveInput, bool jumpPressed)
     {
