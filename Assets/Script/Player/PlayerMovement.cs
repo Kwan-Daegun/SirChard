@@ -10,7 +10,6 @@ public class PlayerMovement : MonoBehaviour
     bool isStunned = false;
     #endregion
 
-    
     bool isKnockedDown = false;
     float knockdownTimer;
     public float knockdownDuration = 2f;
@@ -27,9 +26,7 @@ public class PlayerMovement : MonoBehaviour
     bool readyToJump;
 
     [Header("Natural Jump Polish")]
-
     public float fallMultiplier = 2.5f;
-
     public float lowJumpMultiplier = 2f;
 
     [HideInInspector] public float walkSpeed;
@@ -48,12 +45,16 @@ public class PlayerMovement : MonoBehaviour
     Rigidbody rb;
     public Transform cameraTransform;
 
+    private PlayerVisuals _visuals; // ADDED
+
     private void Start()
     {
         rb = GetComponent<Rigidbody>();
         rb.freezeRotation = true;
         readyToJump = true;
         rb.interpolation = RigidbodyInterpolation.Interpolate;
+
+        _visuals = GetComponent<PlayerVisuals>(); // ADDED
 
         if (cameraTransform == null && Camera.main != null)
         {
@@ -71,7 +72,6 @@ public class PlayerMovement : MonoBehaviour
         }
         #endregion
 
-
         if (isKnockedDown)
         {
             knockdownTimer -= Time.deltaTime;
@@ -81,6 +81,7 @@ public class PlayerMovement : MonoBehaviour
                 rb.angularVelocity = Vector3.zero;
                 rb.freezeRotation = true;
                 transform.rotation = Quaternion.identity;
+                _visuals?.OnGetUp(); // ADDED
             }
         }
 
@@ -110,13 +111,11 @@ public class PlayerMovement : MonoBehaviour
 
     public void OnJump(InputAction.CallbackContext context)
     {
-
         jumpInput = context.action.IsPressed();
     }
 
     private void MyInput()
     {
-
         if (jumpInput && readyToJump && grounded)
         {
             readyToJump = false;
@@ -129,6 +128,7 @@ public class PlayerMovement : MonoBehaviour
     {
         if (GetComponent<PlayerTackle>() != null && GetComponent<PlayerTackle>().IsTackling)
             return;
+
         #region to be removed when input system is fully implemented
         if (isStunned) return;
         #endregion
@@ -157,12 +157,10 @@ public class PlayerMovement : MonoBehaviour
 
     private void BetterJumpPhysics()
     {
-
         if (rb.linearVelocity.y < 0)
         {
             rb.linearVelocity += Vector3.up * Physics.gravity.y * (fallMultiplier - 1) * Time.fixedDeltaTime;
         }
-
         else if (rb.linearVelocity.y > 0 && !jumpInput)
         {
             rb.linearVelocity += Vector3.up * Physics.gravity.y * (lowJumpMultiplier - 1) * Time.fixedDeltaTime;
@@ -173,6 +171,7 @@ public class PlayerMovement : MonoBehaviour
     {
         if (GetComponent<PlayerTackle>() != null && GetComponent<PlayerTackle>().IsTackling)
             return;
+
         Vector3 flatVel = new Vector3(rb.linearVelocity.x, 0f, rb.linearVelocity.z);
 
         if (flatVel.magnitude > moveSpeed)
@@ -184,7 +183,6 @@ public class PlayerMovement : MonoBehaviour
 
     private void Jump()
     {
-
         rb.linearVelocity = new Vector3(rb.linearVelocity.x, 0f, rb.linearVelocity.z);
         rb.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
     }
