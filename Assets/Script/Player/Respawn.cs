@@ -8,7 +8,6 @@ public class PlayerRespawn : MonoBehaviour
 
     void Start()
     {
-        // Record the unique spawn point for this specific player
         startPosition = transform.position;
         rb = GetComponent<Rigidbody>();
         movementScript = GetComponent<PlayerMovement>();
@@ -16,7 +15,6 @@ public class PlayerRespawn : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        // Check if we hit the hazard
         if (other.CompareTag("Hazard"))
         {
             Respawn();
@@ -25,25 +23,29 @@ public class PlayerRespawn : MonoBehaviour
 
     public void Respawn()
     {
-        // 1. Move the player (Resetting Rigidbody position is best for physics)
+        // --- BALL LOGIC START ---
+        // Find the ball in the scene. 
+        // If the ball script is named 'BallScript', replace 'BallScript' below with that name.
+        EnergyBall ball = FindFirstObjectByType<EnergyBall>();
+
+        if (ball != null && ball.currentOwner == gameObject)
+        {
+            ball.DropBall();
+        }
+        // --- BALL LOGIC END ---
+
+        // Teleport Player
         rb.position = startPosition;
         transform.position = startPosition;
 
-        // 2. Clear all physics momentum (prevents sliding after teleport)
+        // Reset Physics
         rb.linearVelocity = Vector3.zero;
         rb.angularVelocity = Vector3.zero;
-
-        // 3. Force rotation back to upright
         transform.rotation = Quaternion.identity;
-        rb.freezeRotation = true;
 
-        // 4. Reset your PlayerMovement states
-        if (movementScript != null)
-        {
-            // Use SendMessage to reset the private booleans in your movement script
-            gameObject.SendMessage("ResetPlayerStates", SendMessageOptions.DontRequireReceiver);
-        }
+        // Reset Movement Script States
+        gameObject.SendMessage("ResetPlayerStates", SendMessageOptions.DontRequireReceiver);
 
-        Debug.Log($"{gameObject.name} (Tag: {gameObject.tag}) respawned.");
+        Debug.Log($"{gameObject.name} hit hazard, dropped ball, and respawned.");
     }
 }
