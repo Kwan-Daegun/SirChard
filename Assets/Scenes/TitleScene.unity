@@ -813,6 +813,87 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 723518678}
   m_CullTransparentMesh: 1
+--- !u!1001 &869198799
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: -8679921383154817045, guid: 85deb60335f07114fa59aaed7af7e3c9, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 107.62707
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 85deb60335f07114fa59aaed7af7e3c9, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 107.62707
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 85deb60335f07114fa59aaed7af7e3c9, type: 3}
+      propertyPath: m_LocalScale.z
+      value: 107.62707
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 85deb60335f07114fa59aaed7af7e3c9, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 2.1
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 85deb60335f07114fa59aaed7af7e3c9, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: -2.7014
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 85deb60335f07114fa59aaed7af7e3c9, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 1.6
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 85deb60335f07114fa59aaed7af7e3c9, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 0.27153933
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 85deb60335f07114fa59aaed7af7e3c9, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 85deb60335f07114fa59aaed7af7e3c9, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0.9624274
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 85deb60335f07114fa59aaed7af7e3c9, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 85deb60335f07114fa59aaed7af7e3c9, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 85deb60335f07114fa59aaed7af7e3c9, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 148.488
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 85deb60335f07114fa59aaed7af7e3c9, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -4589018676328654947, guid: 85deb60335f07114fa59aaed7af7e3c9, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 8c2e83a43821cf548ac0c5da6e7fdbee, type: 2}
+    - target: {fileID: 919132149155446097, guid: 85deb60335f07114fa59aaed7af7e3c9, type: 3}
+      propertyPath: m_Name
+      value: robotNiWatchaDakula (1)
+      objectReference: {fileID: 0}
+    - target: {fileID: 4305384325560187151, guid: 85deb60335f07114fa59aaed7af7e3c9, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0.002
+      objectReference: {fileID: 0}
+    - target: {fileID: 4305384325560187151, guid: 85deb60335f07114fa59aaed7af7e3c9, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: -0.003
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 85deb60335f07114fa59aaed7af7e3c9, type: 3}
 --- !u!1 &1006621970
 GameObject:
   m_ObjectHideFlags: 0
@@ -2132,3 +2213,4 @@ SceneRoots:
   - {fileID: 711181721}
   - {fileID: 2043197086}
   - {fileID: 657776880}
+  - {fileID: 869198799}
