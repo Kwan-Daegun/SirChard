@@ -14,6 +14,9 @@ public class PlayerMovement : MonoBehaviour
     float knockdownTimer;
     public float knockdownDuration = 2f;
 
+    [Header("Animation Settings")]
+    public Animator animator;
+
     [Header("Movement Settings")]
     public float moveSpeed;
     public float rotationSpeed = 5000f;
@@ -89,6 +92,7 @@ public class PlayerMovement : MonoBehaviour
 
         MyInput();
         SpeedControl();
+        UpdateAnimations();
 
         if (grounded)
             rb.linearDamping = groundDrag;
@@ -179,6 +183,32 @@ public class PlayerMovement : MonoBehaviour
             Vector3 limitedVel = flatVel.normalized * moveSpeed;
             rb.linearVelocity = new Vector3(limitedVel.x, rb.linearVelocity.y, limitedVel.z);
         }
+    }
+
+    private void UpdateAnimations()
+    {
+        if (animator == null) return;
+
+        // Don't play running animations if knocked down or tackling
+        if (isKnockedDown || (GetComponent<PlayerTackle>() != null && GetComponent<PlayerTackle>().IsTackling))
+        {
+            animator.SetFloat("Speed", 0f);
+            return;
+        }
+
+        // Calculate movement intensity (0 = idle, 1 = full speed)
+        // Using raw input provides snappier animation responses than using Rigidbody velocity
+        float inputMagnitude = new Vector2(horizontalInput, verticalInput).magnitude;
+        float clampedInput = Mathf.Clamp01(inputMagnitude);
+
+        // Option A: Using a Float for a Blend Tree (Recommended)
+        // The 0.1f adds a slight damping effect so the transition isn't instantly jarring
+        animator.SetFloat("Speed", clampedInput, 0.1f, Time.deltaTime);
+
+        /* // Option B: Using a Boolean (Uncomment this if you are using transition arrows instead of a Blend Tree)
+        bool isMoving = clampedInput > 0.1f;
+        animator.SetBool("IsRunning", isMoving);
+        */
     }
 
     private void Jump()
