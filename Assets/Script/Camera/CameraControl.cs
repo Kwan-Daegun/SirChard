@@ -1,16 +1,17 @@
 using UnityEngine;
 
-
-
 public class CameraControl : MonoBehaviour
 {
-    public float m_DampTime = 0.2f;
-    public float m_ScreenEdgeBuffer = 4f;
-    public float m_MinSize = 6.5f;
+    public float m_DampTime = 0.15f;          // movement smoothness
+    public float m_ZoomDampTime = 0.08f;      // faster zoom response
+    public float m_ScreenEdgeBuffer = 5f;
+
+    public float m_MinDistance = 15f;         // closest zoom
+    public float m_MaxDistance = 50f;         // farthest zoom
+
     public Transform[] m_Targets;
 
     private Camera m_Camera;
-    private float m_ZoomSpeed;
     private Vector3 m_MoveVelocity;
     private Vector3 m_DesiredPosition;
     private Vector3 m_AimToRig;
@@ -19,93 +20,107 @@ public class CameraControl : MonoBehaviour
     {
         m_Camera = GetComponentInChildren<Camera>();
 
-        Plane p = new Plane(Vector3.up, transform.position);
-        Ray r = new Ray(m_Camera.transform.position, m_Camera.transform.forward);
-        p.Raycast(r, out float d);
+        // Calculate offset from camera to rig
+        Plane plane = new Plane(Vector3.up, transform.position);
+        Ray ray = new Ray(m_Camera.transform.position, m_Camera.transform.forward);
 
-        var aimTarget = r.GetPoint(d);
-
-        m_AimToRig = transform.position - aimTarget;
+        if (plane.Raycast(ray, out float distance))
+        {
+            Vector3 aimPoint = ray.GetPoint(distance);
+            m_AimToRig = transform.position - aimPoint;
+        }
     }
 
     private void LateUpdate()
     {
-        Move();
-        Zoom();
+        if (m_Targets == null || m_Targets.Length == 0)
+            return;
+
+        FindCenterPosition();
+        MoveAndZoom();
     }
 
-    private void Move()
+    private void FindCenterPosition()
     {
-        FindAveragePosition();
-        transform.position = Vector3.SmoothDamp(transform.position, m_DesiredPosition + m_AimToRig, ref m_MoveVelocity, m_DampTime);
-    }
-
-    private void FindAveragePosition()
-    {
-        Vector3 averagePos = new Vector3();
-        int numTargets = 0;
+        Bounds bounds = new Bounds(m_Targets[0].position, Vector3.zero);
 
         for (int i = 0; i < m_Targets.Length; i++)
         {
             if (m_Targets[i] == null || !m_Targets[i].gameObject.activeSelf)
                 continue;
 
-            averagePos += m_Targets[i].position;
-            numTargets++;
+            bounds.Encapsulate(m_Targets[i].position);
         }
 
-        if (numTargets > 0)
-            averagePos /= numTargets;
-
-        averagePos.y = transform.position.y;
-        m_DesiredPosition = averagePos;
+        m_DesiredPosition = bounds.center;
     }
 
-    private void Zoom()
+    private void MoveAndZoom()
     {
         float requiredSize = FindRequiredSize();
-        m_Camera.orthographicSize = Mathf.SmoothDamp(m_Camera.orthographicSize, requiredSize, ref m_ZoomSpeed, m_DampTime);
+
+        // 🔥 Faster, more responsive zoom
+        float zoomFactor = requiredSize * 1.2f;
+
+        float targetDistance = Mathf.Clamp(
+            zoomFactor,
+            m_MinDistance,
+            m_MaxDistance
+        );
+
+        Vector3 dir = m_Camera.transform.forward;
+
+        Vector3 desiredPosition = m_DesiredPosition + m_AimToRig - dir * targetDistance;
+
+        // 🔥 Faster smoothing (less delay feeling)
+        transform.position = Vector3.SmoothDamp(
+            transform.position,
+            desiredPosition,
+            ref m_MoveVelocity,
+            m_ZoomDampTime
+        );
     }
 
     private float FindRequiredSize()
     {
-        Vector3 desiredLocalPos = m_Camera.transform.InverseTransformPoint(m_DesiredPosition);
-        float size = 0f;
+        Bounds bounds = new Bounds(m_Targets[0].position, Vector3.zero);
 
         for (int i = 0; i < m_Targets.Length; i++)
         {
             if (m_Targets[i] == null || !m_Targets[i].gameObject.activeSelf)
                 continue;
 
-            Vector3 targetLocalPos = m_Camera.transform.InverseTransformPoint(m_Targets[i].position);
-            Vector3 desiredPosToTarget = targetLocalPos - desiredLocalPos;
-
-            size = Mathf.Max(size, Mathf.Abs(desiredPosToTarget.y));
-            size = Mathf.Max(size, Mathf.Abs(desiredPosToTarget.x) / m_Camera.aspect);
+            bounds.Encapsulate(m_Targets[i].position);
         }
 
+        float size = Mathf.Max(bounds.size.x, bounds.size.z);
         size += m_ScreenEdgeBuffer;
-        size = Mathf.Max(size, m_MinSize);
 
         return size;
     }
 
     public void SetStartPositionAndSize()
     {
-        FindAveragePosition();
-        transform.position = m_DesiredPosition + m_AimToRig;
-        m_Camera.orthographicSize = FindRequiredSize();
+        FindCenterPosition();
+        MoveAndZoom();
     }
 
     public void SetTargets(Transform p1, Transform p2, Transform p3, Transform p4, int playerCount)
     {
-        if (playerCount == 2)
-            m_Targets = new Transform[] { p1, p2 };
-
-        if (playerCount == 3)
-            m_Targets = new Transform[] { p1, p2, p3 };
-
-        if (playerCount == 4)
-            m_Targets = new Transform[] { p1, p2, p3, p4 };
+        switch (playerCount)
+        {
+            case 1:
+                m_Targets = new Transform[] { p1 };
+                break;
+            case 2:
+                m_Targets = new Transform[] { p1, p2 };
+                break;
+            case 3:
+                m_Targets = new Transform[] { p1, p2, p3 };
+                break;
+            case 4:
+                m_Targets = new Transform[] { p1, p2, p3, p4 };
+                break;
+        }
     }
 }
