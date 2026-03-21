@@ -498,6 +498,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   knockdownDuration: 2
+  animator: {fileID: 0}
   moveSpeed: 7
   rotationSpeed: 500
   groundDrag: 2
@@ -691,7 +692,7 @@ Animator:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 155627015}
   m_Enabled: 1
-  m_Avatar: {fileID: 0}
+  m_Avatar: {fileID: 9000000, guid: d965a016d76e3d3478808d7716d097cf, type: 3}
   m_Controller: {fileID: 9100000, guid: 1c3996bafb43b31459d2f3bdabd0943f, type: 2}
   m_CullingMode: 0
   m_UpdateMode: 0
@@ -1191,6 +1192,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   knockdownDuration: 2
+  animator: {fileID: 0}
   moveSpeed: 7
   rotationSpeed: 3000
   groundDrag: 1
@@ -1969,7 +1971,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7078783431860182994, guid: f2d2a75468b7fc745a588323e1062013, type: 3}
       propertyPath: m_MinDistance
-      value: 5
+      value: 3
       objectReference: {fileID: 0}
     - target: {fileID: 7078783431860182994, guid: f2d2a75468b7fc745a588323e1062013, type: 3}
       propertyPath: m_ScreenEdgeBuffer
@@ -2017,7 +2019,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8163421727439470661, guid: f2d2a75468b7fc745a588323e1062013, type: 3}
       propertyPath: near clip plane
-      value: 0.3
+      value: 0.1
       objectReference: {fileID: 0}
     - target: {fileID: 8163421727439470661, guid: f2d2a75468b7fc745a588323e1062013, type: 3}
       propertyPath: orthographic size
@@ -2054,6 +2056,10 @@ PrefabInstance:
     - target: {fileID: 2615048629262453975, guid: 93512f7bebf063e43bcbe8191a46b8ae, type: 3}
       propertyPath: m_Name
       value: robotNiWatchaDakula
+      objectReference: {fileID: 0}
+    - target: {fileID: 2615048629262453975, guid: 93512f7bebf063e43bcbe8191a46b8ae, type: 3}
+      propertyPath: m_IsActive
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 3387081247980246637, guid: 93512f7bebf063e43bcbe8191a46b8ae, type: 3}
       propertyPath: m_LocalPosition.x
@@ -2095,7 +2101,8 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: 8782433409524960279, guid: 93512f7bebf063e43bcbe8191a46b8ae, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents: []
@@ -2149,6 +2156,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 76f4a453935bc8d44b34d43def5a4df9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  energyBall: {fileID: 0}
+  pointsPerSecond: 10
+  players: []
 --- !u!1 &634603658
 GameObject:
   m_ObjectHideFlags: 0
@@ -4725,6 +4735,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   knockdownDuration: 2
+  animator: {fileID: 0}
   moveSpeed: 7
   rotationSpeed: 3000
   groundDrag: 1
@@ -5423,6 +5434,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   knockdownDuration: 2
+  animator: {fileID: 0}
   moveSpeed: 7
   rotationSpeed: 3000
   groundDrag: 1
@@ -5731,7 +5743,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1809240754}
-  - component: {fileID: 1809240753}
+  - component: {fileID: 1809240755}
   m_Layer: 0
   m_Name: GameManager
   m_TagString: Untagged
@@ -5739,26 +5751,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &1809240753
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1809240752}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 25be3c54f4fdfac4492b1f90d2c56cc1, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  player1: {fileID: 155627020}
-  player2: {fileID: 305284835}
-  player3: {fileID: 1289081968}
-  player4: {fileID: 1679956157}
-  spawn1: {fileID: 1681845287}
-  spawn2: {fileID: 1952494185}
-  spawn3: {fileID: 1187739743}
-  spawn4: {fileID: 1216197979}
 --- !u!4 &1809240754
 Transform:
   m_ObjectHideFlags: 0
@@ -5774,6 +5766,26 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1809240755
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1809240752}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d3d6f1c5ce34fa8459ea5dd17fcb22b2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  player1: {fileID: 155627020}
+  player2: {fileID: 305284835}
+  player3: {fileID: 1289081968}
+  player4: {fileID: 1679956157}
+  spawn1: {fileID: 155627020}
+  spawn2: {fileID: 305284835}
+  spawn3: {fileID: 1289081968}
+  spawn4: {fileID: 1679956157}
 --- !u!1 &1809795195
 GameObject:
   m_ObjectHideFlags: 0
