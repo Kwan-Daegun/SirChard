@@ -104,7 +104,10 @@ public class LEDLamp : MonoBehaviour
     }
     private List<Particle> _particles = new List<Particle>();
 
-    // ── Colour palette ───────────────────────────────────────
+    // ── Player shadow proximity ───────────────────────────────
+    private static readonly float SHADOW_HIDE_DIST = 3f;
+    private Transform[] _playerTransforms;
+    private MeshRenderer[][] _playerRenderers;
     static readonly Color ColCyan = new Color(0.00f, 0.95f, 1.00f, 1f);
     static readonly Color ColViolet = new Color(0.70f, 0.10f, 1.00f, 1f);
     static readonly Color ColOrange = new Color(1.00f, 0.45f, 0.00f, 1f);
@@ -156,6 +159,7 @@ public class LEDLamp : MonoBehaviour
         StartCoroutine(ParticleEmitter());
         if (showBeams) StartCoroutine(SweepBeams());
         if (lampIndex == 0 && autoShow) StartCoroutine(ModeCycler());
+        StartCoroutine(ProximityShadowLoop());
     }
 
     void Update()
@@ -163,6 +167,74 @@ public class LEDLamp : MonoBehaviour
         s_time += Time.deltaTime;
         TickParticles();
     }
+
+    // ────────────────────────────────────────────────────────
+    #region PROXIMITY SHADOW
+    // ────────────────────────────────────────────────────────
+
+    IEnumerator ProximityShadowLoop()
+    {
+        // Wait for players to spawn
+        yield return new WaitForSeconds(0.5f);
+
+        // Cache all player renderers once
+        string[] tags = { "Player1", "Player2", "Player3", "Player4" };
+        var playerList = new List<Transform>();
+        var rendererList = new List<MeshRenderer[]>();
+
+        foreach (var tag in tags)
+        {
+            var go = GameObject.FindGameObjectWithTag(tag);
+            if (!go) continue;
+            playerList.Add(go.transform);
+            // Get all mesh renderers on the player except VFX
+            var mrs = new List<MeshRenderer>();
+            foreach (var mr in go.GetComponentsInChildren<MeshRenderer>())
+            {
+                string n = mr.gameObject.name;
+                if (n == "Halo" || n == "AuraRing" || n == "S" ||
+                    n == "P" || n == "DizzyStar" || n == "Tr") continue;
+                mrs.Add(mr);
+            }
+            rendererList.Add(mrs.ToArray());
+        }
+
+        _playerTransforms = playerList.ToArray();
+        _playerRenderers = rendererList.ToArray();
+
+        while (true)
+        {
+            // Only the lamp with lampIndex == 0 runs proximity for all lamps
+            // (all lamps share the same LED floor area so any lamp being close counts)
+            foreach (var ledLamp in s_allLamps)
+            {
+                if (!ledLamp) continue;
+                Vector3 lampPos = ledLamp.transform.position;
+
+                for (int i = 0; i < _playerTransforms.Length; i++)
+                {
+                    if (_playerTransforms[i] == null) continue;
+                    float dist = Vector3.Distance(
+                        _playerTransforms[i].position, lampPos);
+
+                    bool nearLED = dist < SHADOW_HIDE_DIST;
+
+                    // Hide or show player shadows based on proximity
+                    foreach (var mr in _playerRenderers[i])
+                    {
+                        if (!mr) continue;
+                        mr.shadowCastingMode = nearLED
+                            ? UnityEngine.Rendering.ShadowCastingMode.Off
+                            : UnityEngine.Rendering.ShadowCastingMode.On;
+                    }
+                }
+            }
+
+            yield return new WaitForSeconds(0.05f); // check 20x per second
+        }
+    }
+
+    #endregion
 
     // ────────────────────────────────────────────────────────
     #region BUILD VISUAL OBJECTS
