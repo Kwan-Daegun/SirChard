@@ -3,7 +3,7 @@ using UnityEngine;
 using TMPro;
 
 [System.Serializable]
-public class PlayerData
+public class PlayerData : MonoBehaviour
 {
     public string playerName;
     public GameObject playerObject;
