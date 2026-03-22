@@ -209,12 +209,14 @@ public class PlayerMovement : MonoBehaviour
         bool isMoving = clampedInput > 0.1f;
         animator.SetBool("IsRunning", isMoving);
         */
+        animator.SetBool("IsGrounded", grounded);
     }
 
     private void Jump()
     {
         rb.linearVelocity = new Vector3(rb.linearVelocity.x, 0f, rb.linearVelocity.z);
         rb.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
+        if (animator != null) animator.SetTrigger("Jump");
     }
 
     private void ResetJump()

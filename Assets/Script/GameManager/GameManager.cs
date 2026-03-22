@@ -228,7 +228,7 @@ public class GameManager : MonoBehaviour
 
         MakeSubtitle(_creditsPanel.transform, "CORE: LAST CHARGE", ColText, new Vector2(0f, 140f));
         MakeSubtitle(_creditsPanel.transform, "GAME DESIGN & CODE", ColSub, new Vector2(0f, 60f));
-        MakeSubtitle(_creditsPanel.transform, "YOUR NAME HERE", ColAccentA, new Vector2(0f, 0f));
+        MakeSubtitle(_creditsPanel.transform, "John Vincent Rufo\nJohn Ruel Atamante\nVictor Emmanuel Buenafe\nFrancis Senson\nCharles Zagada", ColAccentA, new Vector2(0f, 0f));
         MakeSubtitle(_creditsPanel.transform, "BUILT WITH UNITY 6", ColSub, new Vector2(0f, -80f));
         MakeSubtitle(_creditsPanel.transform, "THANK YOU FOR PLAYING", ColGold, new Vector2(0f, -180f));
 
