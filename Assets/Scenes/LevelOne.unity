@@ -6907,16 +6907,16 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1809240752}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d3d6f1c5ce34fa8459ea5dd17fcb22b2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  player1: {fileID: 0}
-  player2: {fileID: 0}
-  player3: {fileID: 0}
-  player4: {fileID: 0}
-  spawn1: {fileID: 0}
+  player1: {fileID: 155627020}
+  player2: {fileID: 305284835}
+  player3: {fileID: 1289081968}
+  player4: {fileID: 1679956157}
+  spawn1: {fileID: 1681845287}
   spawn2: {fileID: 0}
   spawn3: {fileID: 0}
   spawn4: {fileID: 0}
