@@ -2000,7 +2000,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -813, y: 154.6}
+  m_AnchoredPosition: {x: -813, y: 102.60003}
   m_SizeDelta: {x: 250, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1001 &481675254
@@ -2447,10 +2447,25 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 76f4a453935bc8d44b34d43def5a4df9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  playerName: SHjDHSJDHJ
-  playerObject: {fileID: 842520062}
-  scoreText: {fileID: 842520064}
-  score: 0
+  energyBall: {fileID: 643827647}
+  pointsPerSecond: 10
+  players:
+  - playerName: Nigga1
+    playerObject: {fileID: 155627015}
+    scoreText: {fileID: 842520064}
+    score: 0
+  - playerName: Nigga2
+    playerObject: {fileID: 305284828}
+    scoreText: {fileID: 1809795197}
+    score: 0
+  - playerName: Nigga3
+    playerObject: {fileID: 1289081960}
+    scoreText: {fileID: 1832483770}
+    score: 0
+  - playerName: Nigga4
+    playerObject: {fileID: 1679956149}
+    scoreText: {fileID: 480365567}
+    score: 0
 --- !u!1 &634603658
 GameObject:
   m_ObjectHideFlags: 0
@@ -4033,7 +4048,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -813, y: 452}
+  m_AnchoredPosition: {x: -813, y: 400}
   m_SizeDelta: {x: 250, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &842520064
@@ -6896,7 +6911,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1809240754}
-  - component: {fileID: 1809240753}
+  - component: {fileID: 1809240755}
   m_Layer: 0
   m_Name: GameManager
   m_TagString: Untagged
@@ -6904,26 +6919,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &1809240753
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1809240752}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d3d6f1c5ce34fa8459ea5dd17fcb22b2, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  player1: {fileID: 155627020}
-  player2: {fileID: 305284835}
-  player3: {fileID: 1289081968}
-  player4: {fileID: 1679956157}
-  spawn1: {fileID: 1681845287}
-  spawn2: {fileID: 0}
-  spawn3: {fileID: 0}
-  spawn4: {fileID: 0}
 --- !u!4 &1809240754
 Transform:
   m_ObjectHideFlags: 0
@@ -6939,6 +6934,26 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1809240755
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1809240752}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 25be3c54f4fdfac4492b1f90d2c56cc1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  player1: {fileID: 155627020}
+  player2: {fileID: 305284835}
+  player3: {fileID: 1289081968}
+  player4: {fileID: 1679956157}
+  spawn1: {fileID: 1681845287}
+  spawn2: {fileID: 1952494185}
+  spawn3: {fileID: 1187739743}
+  spawn4: {fileID: 1216197979}
 --- !u!1 &1809795195
 GameObject:
   m_ObjectHideFlags: 0
@@ -6973,7 +6988,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -813, y: 347}
+  m_AnchoredPosition: {x: -813, y: 317}
   m_SizeDelta: {x: 250, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1809795197
@@ -7148,7 +7163,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -813, y: 255}
+  m_AnchoredPosition: {x: -813, y: 225}
   m_SizeDelta: {x: 250, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &1832483769

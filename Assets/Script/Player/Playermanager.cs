@@ -3,7 +3,7 @@ using UnityEngine;
 using TMPro;
 
 [System.Serializable]
-public class PlayerData : MonoBehaviour
+public class PlayerData
 {
     public string playerName;
     public GameObject playerObject;
@@ -15,7 +15,7 @@ public class PlayerManager : MonoBehaviour
 {
     public EnergyBall energyBall;
     public float pointsPerSecond = 10f;
-    
+
     public List<PlayerData> players = new List<PlayerData>();
 
     private void Update()
@@ -27,7 +27,7 @@ public class PlayerManager : MonoBehaviour
             if (p.playerObject == energyBall.currentOwner)
             {
                 p.score += pointsPerSecond * Time.deltaTime;
-                
+
                 if (p.scoreText != null)
                 {
                     p.scoreText.text = p.playerName + ": " + Mathf.FloorToInt(p.score).ToString();

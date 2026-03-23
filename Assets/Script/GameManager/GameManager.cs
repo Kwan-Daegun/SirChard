@@ -32,7 +32,7 @@ using UnityEngine.UI;
 public class GameManager : MonoBehaviour
 {
     public static GameManager Instance;
-
+    
     [Header("Players & Spawns")]
     public Transform player1, player2, player3, player4;
     public Transform spawn1, spawn2, spawn3, spawn4;
