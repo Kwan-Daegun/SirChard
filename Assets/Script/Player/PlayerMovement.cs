@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
+[RequireComponent(typeof(AudioSource))] // Ensures we have the shared AudioSource
 public class PlayerMovement : MonoBehaviour
 {
     #region to be removed when input system is fully implemented
@@ -10,7 +11,7 @@ public class PlayerMovement : MonoBehaviour
     bool isStunned = false;
     #endregion
 
-    bool isKnockedDown = false;
+    public bool isKnockedDown = false; // ++ CHANGED: Made public so PlayerTackle can read it
     float knockdownTimer;
     public float knockdownDuration = 2f;
 
@@ -32,6 +33,11 @@ public class PlayerMovement : MonoBehaviour
     public float fallMultiplier = 2.5f;
     public float lowJumpMultiplier = 2f;
 
+    [Header("Audio Settings")]
+    public AudioClip runningSFX;
+    public float footstepSpeed = 0.3f;
+    private float footstepTimer;
+
     [HideInInspector] public float walkSpeed;
     [HideInInspector] public float sprintSpeed;
 
@@ -48,7 +54,8 @@ public class PlayerMovement : MonoBehaviour
     Rigidbody rb;
     public Transform cameraTransform;
 
-    private PlayerVisuals _visuals; // ADDED
+    private PlayerVisuals _visuals;
+    private AudioSource _audioSource;
 
     private void Start()
     {
@@ -57,7 +64,8 @@ public class PlayerMovement : MonoBehaviour
         readyToJump = true;
         rb.interpolation = RigidbodyInterpolation.Interpolate;
 
-        _visuals = GetComponent<PlayerVisuals>(); // ADDED
+        _visuals = GetComponent<PlayerVisuals>();
+        _audioSource = GetComponent<AudioSource>();
 
         if (cameraTransform == null && Camera.main != null)
         {
@@ -84,7 +92,7 @@ public class PlayerMovement : MonoBehaviour
                 rb.angularVelocity = Vector3.zero;
                 rb.freezeRotation = true;
                 transform.rotation = Quaternion.identity;
-                _visuals?.OnGetUp(); // ADDED
+                _visuals?.OnGetUp();
             }
         }
 
@@ -93,6 +101,7 @@ public class PlayerMovement : MonoBehaviour
         MyInput();
         SpeedControl();
         UpdateAnimations();
+        HandleRunningSFX(); // Handles our footstep timer
 
         if (grounded)
             rb.linearDamping = groundDrag;
@@ -189,26 +198,16 @@ public class PlayerMovement : MonoBehaviour
     {
         if (animator == null) return;
 
-        // Don't play running animations if knocked down or tackling
         if (isKnockedDown || (GetComponent<PlayerTackle>() != null && GetComponent<PlayerTackle>().IsTackling))
         {
             animator.SetFloat("Speed", 0f);
             return;
         }
 
-        // Calculate movement intensity (0 = idle, 1 = full speed)
-        // Using raw input provides snappier animation responses than using Rigidbody velocity
         float inputMagnitude = new Vector2(horizontalInput, verticalInput).magnitude;
         float clampedInput = Mathf.Clamp01(inputMagnitude);
 
-        // Option A: Using a Float for a Blend Tree (Recommended)
-        // The 0.1f adds a slight damping effect so the transition isn't instantly jarring
         animator.SetFloat("Speed", clampedInput, 0.1f, Time.deltaTime);
-
-        /* // Option B: Using a Boolean (Uncomment this if you are using transition arrows instead of a Blend Tree)
-        bool isMoving = clampedInput > 0.1f;
-        animator.SetBool("IsRunning", isMoving);
-        */
         animator.SetBool("IsGrounded", grounded);
     }
 
@@ -224,7 +223,31 @@ public class PlayerMovement : MonoBehaviour
         readyToJump = true;
     }
 
-    // Add this at the bottom of PlayerMovement.cs
+    private void HandleRunningSFX()
+    {
+        if (runningSFX == null || _audioSource == null) return;
+
+        bool isTackling = GetComponent<PlayerTackle>() != null && GetComponent<PlayerTackle>().IsTackling;
+        float inputMagnitude = new Vector2(horizontalInput, verticalInput).magnitude;
+
+        bool isMovingAndGrounded = (inputMagnitude > 0.1f) && grounded && !isKnockedDown && !isStunned && !isTackling;
+
+        if (isMovingAndGrounded)
+        {
+            footstepTimer -= Time.deltaTime;
+
+            if (footstepTimer <= 0f)
+            {
+                _audioSource.PlayOneShot(runningSFX, 0.6f);
+                footstepTimer = footstepSpeed;
+            }
+        }
+        else
+        {
+            footstepTimer = 0f;
+        }
+    }
+
     public void ResetPlayerStates()
     {
         isKnockedDown = false;
@@ -235,6 +258,7 @@ public class PlayerMovement : MonoBehaviour
         transform.rotation = Quaternion.identity;
         _visuals?.OnGetUp();
     }
+
     #region to be removed when input system is fully implemented
     public void SetInput(Vector2 moveInput, bool jumpPressed)
     {

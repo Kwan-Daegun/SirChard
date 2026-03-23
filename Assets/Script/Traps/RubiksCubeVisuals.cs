@@ -2,23 +2,19 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-// ============================================================
-//  RubiksCubeVisuals — Fixed Edition
-//
-//  FIXES:
-//  - Negative scale handled via Mathf.Abs on bounds size
-//  - Cube array properly updated after each slice rotation
-//    so it never loses track of where cubies are
-//  - Minimum size fallback so even tiny-bounded cubes work
-// ============================================================
-
 public class RubiksCubeVisuals : MonoBehaviour
 {
     [Header("Settings")]
     [Range(0.02f, 0.15f)] public float gapFraction = 0.06f;
     public float rotateSpeed = 180f;
     [Range(0.1f, 5f)] public float lightIntensity = 3f;
-    public bool showColors = true; // uncheck to disable colour cycling
+    public bool showColors = true;
+
+    [Header("Target Cubes")]
+    [SerializeField] private MeshRenderer[] targetCubes;
+
+    [Header("Materials")]
+    [SerializeField] private Material unlitMaterial; // ← drag your UnlitMat here
 
     static readonly Color FaceTop = new Color(1.00f, 1.00f, 1.00f, 1f);
     static readonly Color FaceBottom = new Color(1.00f, 0.85f, 0.05f, 1f);
@@ -28,18 +24,16 @@ public class RubiksCubeVisuals : MonoBehaviour
     static readonly Color FaceLeft = new Color(0.15f, 0.85f, 0.25f, 1f);
     static readonly Color FaceInner = new Color(0.12f, 0.12f, 0.15f, 1f);
 
-    // ── Per-rubik data ────────────────────────────────────────
     private class RubikData
     {
         public Transform root;
-        // Flat list — index = x*9 + y*3 + z, easier to update than 3D array
         public Transform[] cubies = new Transform[27];
         public List<Material> stickerMats = new List<Material>();
         public List<Material> neonMats = new List<Material>();
         public Light centreLight;
         public float phase;
-        public Vector3 cubeCenter;   // world-space centre
-        public float cubeSize;     // world-space size (always positive)
+        public Vector3 cubeCenter;
+        public float cubeSize;
         public bool isHit;
         public bool rotating;
     }
@@ -56,10 +50,13 @@ public class RubiksCubeVisuals : MonoBehaviour
     }
     private List<Spark> _sparks = new List<Spark>();
 
-    // ────────────────────────────────────────────────────────
-    void Start()
+    void Awake()
     {
         FindAndBuild();
+    }
+
+    void Start()
+    {
         StartCoroutine(LoopRotations());
         StartCoroutine(LoopLight());
         if (showColors)
@@ -79,13 +76,9 @@ public class RubiksCubeVisuals : MonoBehaviour
         foreach (var r in _rubiks) if (r.root) Destroy(r.root.gameObject);
     }
 
-    // ── Force shadows ON after everything is built ───────────
     IEnumerator EnforceShadowsAfterBuild()
     {
-        // Wait for all Start() methods to finish
         yield return new WaitForSeconds(0.2f);
-
-        // Force every Cubie to cast shadows
         foreach (var rubik in _rubiks)
         {
             foreach (var cubie in rubik.cubies)
@@ -97,7 +90,6 @@ public class RubiksCubeVisuals : MonoBehaviour
                     mr.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.On;
                     mr.receiveShadows = true;
                 }
-                // Also force all children (stickers, neons)
                 foreach (var child in cubie.GetComponentsInChildren<MeshRenderer>())
                 {
                     if (child.gameObject.name == "Sticker")
@@ -109,7 +101,6 @@ public class RubiksCubeVisuals : MonoBehaviour
             }
         }
 
-        // Force Ground/floor to receive shadows
         var allRenderers = FindObjectsByType<MeshRenderer>(FindObjectsSortMode.None);
         foreach (var mr in allRenderers)
         {
@@ -122,33 +113,26 @@ public class RubiksCubeVisuals : MonoBehaviour
                 mr.receiveShadows = true;
             }
         }
-
         Debug.Log("[RubiksCubeVisuals] Shadows enforced on all cubies and floor.");
     }
 
-    // ────────────────────────────────────────────────────────
     #region BUILD
-    // ────────────────────────────────────────────────────────
 
     void FindAndBuild()
     {
-        var skip = new HashSet<string> {
-            "Cubie","Sticker","Neon","BoxLight","S","Edge","Corner",
-            "Halo","BeamA","BeamB","PivotA","PivotB","CrackSeg",
-            "ScanLine","FaceGlow","Trace","CoreLight","TopBeam","RubikRoot",
-            "SlicePivot","NL","PanelDot","SpawnDisc","CentreOrb","FloorRing"
-        };
-        int idx = 0;
-        foreach (var mr in GetComponentsInChildren<MeshRenderer>(true))
+        if (targetCubes == null || targetCubes.Length == 0)
         {
-            if (!mr) continue;
-            string n = mr.gameObject.name;
-            if (skip.Contains(n)) { Debug.Log($"[Rubik] SKIP(list): {n}"); continue; }
-            if (n.StartsWith("Rubik")) { Debug.Log($"[Rubik] SKIP(rubik): {n}"); continue; }
-            if (!mr.GetComponent<Collider>()) { Debug.Log($"[Rubik] SKIP(nocol): {n}"); continue; }
-            Debug.Log($"[Rubik] BUILDING: {n} scale={mr.transform.lossyScale}");
-            BuildRubik(mr, idx++);
+            Debug.LogWarning("[RubiksCubeVisuals] No target cubes assigned in Inspector!");
+            return;
         }
+
+        for (int i = 0; i < targetCubes.Length; i++)
+        {
+            if (targetCubes[i] == null) continue;
+            Debug.Log($"[Rubik] BUILDING: {targetCubes[i].name}");
+            BuildRubik(targetCubes[i], i);
+        }
+
         Debug.Log($"[RubiksCubeVisuals] {_rubiks.Count} cubes built.");
     }
 
@@ -158,13 +142,10 @@ public class RubiksCubeVisuals : MonoBehaviour
         Vector3 c = b.center;
         Vector3 ls = mr.transform.lossyScale;
 
-        // bounds.size is reliable for positive scale but wrong for negative
-        // Use Abs of bounds extents * 2 which Unity computes correctly
         float bx = Mathf.Abs(b.extents.x) * 2f;
         float by = Mathf.Abs(b.extents.y) * 2f;
         float bz = Mathf.Abs(b.extents.z) * 2f;
         float sz = Mathf.Min(bx, by, bz);
-        // If bounds are broken (near zero), fall back to lossyScale * localBounds
         if (sz < 0.01f)
         {
             Vector3 lb = mr.localBounds.size;
@@ -173,14 +154,12 @@ public class RubiksCubeVisuals : MonoBehaviour
                 Mathf.Abs(ls.y) * lb.y,
                 Mathf.Abs(ls.z) * lb.z);
         }
-        if (sz < 0.01f) sz = 1f; // last resort fallback
+        if (sz < 0.01f) sz = 1f;
 
         float cSz = sz / 3f;
         float net = cSz * (1f - gapFraction);
 
         Debug.Log($"[RubiksCubeVisuals] Cube {idx}: lossyScale={ls} sz={sz:F2} cSz={cSz:F2} net={net:F2} center={c}");
-
-        mr.enabled = false;
 
         var root = new GameObject("RubikRoot_" + idx);
         root.transform.position = c;
@@ -197,7 +176,6 @@ public class RubiksCubeVisuals : MonoBehaviour
             rotating = false
         };
 
-        // Build 27 cubies — root has clean 1,1,1 scale so localScale works fine
         for (int x = 0; x < 3; x++)
             for (int y = 0; y < 3; y++)
                 for (int z = 0; z < 3; z++)
@@ -210,7 +188,7 @@ public class RubiksCubeVisuals : MonoBehaviour
                     cubie.transform.localRotation = Quaternion.identity;
                     Destroy(cubie.GetComponent<Collider>());
 
-                    var innerMat = new Material(Unlit()); innerMat.color = FaceInner;
+                    var innerMat = NewMat(); innerMat.color = FaceInner;
                     var cubieMR = cubie.GetComponent<MeshRenderer>();
                     cubieMR.material = innerMat;
                     cubieMR.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.On;
@@ -223,7 +201,6 @@ public class RubiksCubeVisuals : MonoBehaviour
                     if (isOuter) AddNeonStrips(cubie.transform, net, rubik);
                 }
 
-        // Centre light
         var lgo = new GameObject("BoxLight");
         lgo.transform.SetParent(root.transform, false);
         lgo.transform.localPosition = Vector3.zero;
@@ -232,12 +209,12 @@ public class RubiksCubeVisuals : MonoBehaviour
         l.intensity = lightIntensity; l.range = sz * 3.5f; l.shadows = LightShadows.None;
         rubik.centreLight = l;
 
-        // Real shadows come from directional light — no fake quad needed
-        // ShadowForcer handles forcing Cast Shadows on all cubies
-
         var reactor = mr.gameObject.GetComponent<RubikHitReactor>();
         if (!reactor) reactor = mr.gameObject.AddComponent<RubikHitReactor>();
         reactor.Setup(this, _rubiks.Count);
+
+        if (rubik.cubies[0] != null) mr.enabled = false;
+        else Debug.LogError($"[RubiksCubeVisuals] Build FAILED for {mr.name}");
 
         _rubiks.Add(rubik);
     }
@@ -264,8 +241,8 @@ public class RubiksCubeVisuals : MonoBehaviour
         go.transform.localScale = lScale;
         go.transform.localRotation = Quaternion.identity;
         Destroy(go.GetComponent<Collider>());
-        var mat = new Material(Unlit());
-        mat.color = showColors ? col : FaceInner; // dark if colors off
+        var mat = NewMat();
+        mat.color = showColors ? col : FaceInner;
         go.GetComponent<MeshRenderer>().material = mat;
         go.GetComponent<MeshRenderer>().shadowCastingMode =
             UnityEngine.Rendering.ShadowCastingMode.Off;
@@ -290,7 +267,7 @@ public class RubiksCubeVisuals : MonoBehaviour
             go.transform.localScale = new Vector3(w, h * 0.5f, w);
             go.transform.localRotation = Quaternion.identity;
             Destroy(go.GetComponent<Collider>());
-            var mat = new Material(Unlit()); mat.color = Color.black;
+            var mat = NewMat(); mat.color = Color.black;
             go.GetComponent<MeshRenderer>().material = mat;
             go.GetComponent<MeshRenderer>().shadowCastingMode =
                 UnityEngine.Rendering.ShadowCastingMode.Off;
@@ -300,9 +277,7 @@ public class RubiksCubeVisuals : MonoBehaviour
 
     #endregion
 
-    // ────────────────────────────────────────────────────────
-    #region ROTATION — FIXED ARRAY TRACKING
-    // ────────────────────────────────────────────────────────
+    #region ROTATION
 
     IEnumerator LoopRotations()
     {
@@ -325,7 +300,6 @@ public class RubiksCubeVisuals : MonoBehaviour
         float dir = Random.value > 0.5f ? 1f : -1f;
         float target = 90f * dir;
 
-        // Collect the 9 cubies in this slice
         var sliceIndices = new List<(int x, int y, int z)>();
         var sliceCubies = new List<Transform>();
 
@@ -346,14 +320,12 @@ public class RubiksCubeVisuals : MonoBehaviour
                 }
             }
 
-        // Parent to pivot for rotation
         var pivot = new GameObject("SlicePivot");
         pivot.transform.position = rubik.root.position;
         pivot.transform.rotation = rubik.root.rotation;
         foreach (var cubie in sliceCubies)
             cubie.SetParent(pivot.transform, true);
 
-        // Rotate smoothly
         float rotated = 0f;
         float speed = rubik.isHit ? rotateSpeed * 5f : rotateSpeed;
         while (Mathf.Abs(rotated) < Mathf.Abs(target))
@@ -368,7 +340,6 @@ public class RubiksCubeVisuals : MonoBehaviour
             yield return null;
         }
 
-        // Re-parent and snap rotations
         foreach (var cubie in sliceCubies)
         {
             if (!cubie) continue;
@@ -381,12 +352,8 @@ public class RubiksCubeVisuals : MonoBehaviour
         }
         Destroy(pivot);
 
-        // ── FIX 2: Update the cubies array to reflect new positions ──
-        // After rotation, the logical positions change — remap the array
-        // by recalculating which grid slot each cubie now occupies
         UpdateCubiesArray(rubik);
 
-        // Re-enforce shadows after reparenting — Unity can reset these
         foreach (var cubie in sliceCubies)
         {
             if (!cubie) continue;
@@ -403,45 +370,28 @@ public class RubiksCubeVisuals : MonoBehaviour
 
     void UpdateCubiesArray(RubikData rubik)
     {
-        // Re-map cubies array based on current world positions
-        // Each cubie should map to the nearest grid slot
-
         float sz = rubik.cubeSize;
         float cSz = sz / 3f;
 
-        // Collect all 27 cubie transforms
         var allCubies = new List<Transform>();
         foreach (var c in rubik.cubies) if (c) allCubies.Add(c);
 
-        // Clear array
         for (int i = 0; i < 27; i++) rubik.cubies[i] = null;
 
         foreach (var cubie in allCubies)
         {
             if (!cubie) continue;
-
-            // Get local position relative to root
             Vector3 local = rubik.root.InverseTransformPoint(cubie.position);
-
-            // Round to nearest grid slot
-            int gx = Mathf.RoundToInt(local.x / cSz) + 1;
-            int gy = Mathf.RoundToInt(local.y / cSz) + 1;
-            int gz = Mathf.RoundToInt(local.z / cSz) + 1;
-
-            // Clamp to 0-2 range
-            gx = Mathf.Clamp(gx, 0, 2);
-            gy = Mathf.Clamp(gy, 0, 2);
-            gz = Mathf.Clamp(gz, 0, 2);
-
+            int gx = Mathf.Clamp(Mathf.RoundToInt(local.x / cSz) + 1, 0, 2);
+            int gy = Mathf.Clamp(Mathf.RoundToInt(local.y / cSz) + 1, 0, 2);
+            int gz = Mathf.Clamp(Mathf.RoundToInt(local.z / cSz) + 1, 0, 2);
             rubik.cubies[CI(gx, gy, gz)] = cubie;
         }
     }
 
     #endregion
 
-    // ────────────────────────────────────────────────────────
     #region LOOPS
-    // ────────────────────────────────────────────────────────
 
     IEnumerator LoopLight()
     {
@@ -528,9 +478,7 @@ public class RubiksCubeVisuals : MonoBehaviour
 
     #endregion
 
-    // ────────────────────────────────────────────────────────
     #region HIT REACTION
-    // ────────────────────────────────────────────────────────
 
     public void OnRubikHit(int index, Vector3 contact)
     {
@@ -562,9 +510,7 @@ public class RubiksCubeVisuals : MonoBehaviour
 
     #endregion
 
-    // ────────────────────────────────────────────────────────
     #region SPARKS
-    // ────────────────────────────────────────────────────────
 
     void SpawnSpark(Vector3 pos, Vector3 vel, Color col, float life, float size)
     {
@@ -573,7 +519,7 @@ public class RubiksCubeVisuals : MonoBehaviour
         go.transform.SetParent(null);
         go.transform.position = pos;
         go.transform.localScale = Vector3.one * Mathf.Max(size, 0.01f);
-        var mat = new Material(Unlit()); mat.color = col;
+        var mat = NewMat(); mat.color = col;
         var mr = go.GetComponent<MeshRenderer>();
         mr.material = mat;
         mr.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
@@ -608,10 +554,15 @@ public class RubiksCubeVisuals : MonoBehaviour
         }
     }
 
-    static Shader Unlit() =>
-        Shader.Find("Universal Render Pipeline/Unlit")
-        ?? Shader.Find("Unlit/Color")
-        ?? Shader.Find("Standard");
+    // ── FIXED: uses serialized material instead of Shader.Find ──
+    Material NewMat()
+    {
+        if (unlitMaterial != null)
+            return new Material(unlitMaterial);
+        return new Material(Shader.Find("Universal Render Pipeline/Unlit")
+            ?? Shader.Find("Unlit/Color")
+            ?? Shader.Find("Standard"));
+    }
 
     #endregion
 }

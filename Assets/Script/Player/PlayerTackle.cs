@@ -2,11 +2,10 @@ using System.Collections;
 using UnityEngine;
 
 // ============================================================
-//  PlayerTackle — with PlayerVisuals hooks added.
-//  Replace your existing PlayerTackle.cs with this.
-//  Only 4 lines were added (marked with // ++ VISUALS)
+//  PlayerTackle — Added Knockdown Check
 // ============================================================
 
+[RequireComponent(typeof(AudioSource))]
 public class PlayerTackle : MonoBehaviour
 {
     public float tacklePower = 20f;
@@ -16,20 +15,31 @@ public class PlayerTackle : MonoBehaviour
     public float tackleRadius = 1.5f;
     public LayerMask playerLayer;
 
+    [Header("Audio")]
+    public AudioClip hitSFX;   // Sound when you successfully hit someone
+    public AudioClip missSFX;  // Plays immediately on tackle (like a dash/whoosh)
+
     private Rigidbody _rb;
     private float _lastTackleTime;
-    private PlayerVisuals _visuals; // ++ VISUALS
+    private PlayerVisuals _visuals;
+    private AudioSource _audioSource;
+    private PlayerMovement _movement; // ++ ADDED: Reference to movement script
 
     public bool IsTackling { get; private set; }
 
     private void Start()
     {
         _rb = GetComponent<Rigidbody>();
-        _visuals = GetComponent<PlayerVisuals>(); // ++ VISUALS
+        _visuals = GetComponent<PlayerVisuals>();
+        _audioSource = GetComponent<AudioSource>();
+        _movement = GetComponent<PlayerMovement>(); // ++ ADDED
     }
 
     public void TryTackle()
     {
+        // ++ ADDED: Prevent tackling if knocked down
+        if (_movement != null && _movement.isKnockedDown) return;
+
         if (Time.time - _lastTackleTime < tackleCooldown || IsTackling) return;
         StartCoroutine(PerformTackle());
     }
@@ -39,7 +49,13 @@ public class PlayerTackle : MonoBehaviour
         IsTackling = true;
         _lastTackleTime = Time.time;
 
-        _visuals?.OnTackleStart(); // ++ VISUALS
+        _visuals?.OnTackleStart();
+
+        // ++ AUDIO: Play the dash/whoosh sound immediately every time you tackle
+        if (missSFX != null)
+        {
+            _audioSource.PlayOneShot(missSFX);
+        }
 
         Vector3 tackleDir = transform.forward;
         _rb.linearVelocity = tackleDir * tacklePower;
@@ -68,7 +84,13 @@ public class PlayerTackle : MonoBehaviour
                         victimRb.AddForce(transform.forward * (tacklePower * 0.5f), ForceMode.Impulse);
                         victim.ApplyPush(tackleStunOnHit);
 
-                        // ++ VISUALS — fire impact effect on both attacker and victim
+                        // ++ AUDIO: Play Hit Sound right on impact
+                        if (hitSFX != null)
+                        {
+                            _audioSource.PlayOneShot(hitSFX);
+                        }
+
+                        // ++ VISUALS
                         Vector3 hitPoint = hit.ClosestPoint(transform.position);
                         _visuals?.OnTackleImpact(hitPoint);
                         hit.GetComponent<PlayerVisuals>()?.OnKnockdown();
@@ -95,6 +117,7 @@ public class PlayerTackle : MonoBehaviour
             }
             yield return null;
         }
+
         IsTackling = false;
     }
 }

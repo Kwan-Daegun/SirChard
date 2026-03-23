@@ -86,6 +86,8 @@ public class BoxVisuals : MonoBehaviour
     // ────────────────────────────────────────────────────────
     #region BUILD
     // ────────────────────────────────────────────────────────
+    [SerializeField] private MeshRenderer[] targetCubes;
+    [SerializeField] private Shader unlitShader;
 
     void FindAndBuild()
     {
