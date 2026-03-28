@@ -23,10 +23,10 @@ RenderSettings:
   m_AmbientSkyColor: {r: 0.212, g: 0.227, b: 0.259, a: 1}
   m_AmbientEquatorColor: {r: 0.114, g: 0.125, b: 0.133, a: 1}
   m_AmbientGroundColor: {r: 0.047, g: 0.043, b: 0.035, a: 1}
-  m_AmbientIntensity: 1.25
+  m_AmbientIntensity: 1
   m_AmbientMode: 0
   m_SubtractiveShadowColor: {r: 0.42, g: 0.478, b: 0.627, a: 1}
-  m_SkyboxMaterial: {fileID: 10304, guid: 0000000000000000f000000000000000, type: 0}
+  m_SkyboxMaterial: {fileID: 2100000, guid: 124061c8abd06b84cb12b5e509acec8e, type: 2}
   m_HaloStrength: 0.5
   m_FlareStrength: 1
   m_FlareFadeSpeed: 3
@@ -1946,6 +1946,22 @@ MonoBehaviour:
   electricColor: {r: 0.8, g: 0.95, b: 1, a: 1}
   pulseSpeed: 2.2
   isActive: 1
+--- !u!114 &445478837
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 445478825}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e2202eb3837dfe14a8d331c9c9d5986c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  trapPrefab: {fileID: 0}
+  numberOfTraps: 10
+  spawnAreaCenter: {x: 0, y: 0, z: 0}
+  spawnAreaSize: {x: 0, y: 0, z: 0}
 --- !u!1 &459530969 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 1862372172917647565, guid: fabd426e7436e954987c534d7f289455, type: 3}
@@ -2007,6 +2023,22 @@ MonoBehaviour:
   electricColor: {r: 0.8, g: 0.95, b: 1, a: 1}
   pulseSpeed: 2.2
   isActive: 1
+--- !u!114 &459530981
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 459530969}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e2202eb3837dfe14a8d331c9c9d5986c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  trapPrefab: {fileID: 0}
+  numberOfTraps: 10
+  spawnAreaCenter: {x: 0, y: 0, z: 0}
+  spawnAreaSize: {x: 0, y: 0, z: 0}
 --- !u!1 &478240745
 GameObject:
   m_ObjectHideFlags: 0
@@ -2452,16 +2484,20 @@ PrefabInstance:
       value: 5
       objectReference: {fileID: 0}
     - target: {fileID: 8163421727439470661, guid: f2d2a75468b7fc745a588323e1062013, type: 3}
+      propertyPath: m_BackGroundColor.a
+      value: 0.6
+      objectReference: {fileID: 0}
+    - target: {fileID: 8163421727439470661, guid: f2d2a75468b7fc745a588323e1062013, type: 3}
       propertyPath: m_BackGroundColor.b
-      value: 0.4745098
+      value: 0.52294123
       objectReference: {fileID: 0}
     - target: {fileID: 8163421727439470661, guid: f2d2a75468b7fc745a588323e1062013, type: 3}
       propertyPath: m_BackGroundColor.g
-      value: 0.3019608
+      value: 0.46529418
       objectReference: {fileID: 0}
     - target: {fileID: 8163421727439470661, guid: f2d2a75468b7fc745a588323e1062013, type: 3}
       propertyPath: m_BackGroundColor.r
-      value: 0.19215687
+      value: 0.39735302
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -3538,12 +3574,12 @@ Light:
   m_GameObject: {fileID: 705507993}
   m_Enabled: 1
   serializedVersion: 11
-  m_Type: 1
-  m_Color: {r: 0.5471698, g: 0.5042087, b: 0.2761659, a: 1}
-  m_Intensity: 6.41
-  m_Range: 29.19
-  m_SpotAngle: 27.698433
-  m_InnerSpotAngle: 21.80208
+  m_Type: 0
+  m_Color: {r: 0.6415094, g: 0.5964558, b: 0.43876824, a: 1}
+  m_Intensity: 1213.83
+  m_Range: 35
+  m_SpotAngle: 114.18158
+  m_InnerSpotAngle: 114.18158
   m_CookieSize: 10
   m_Shadows:
     m_Type: 1
@@ -3582,7 +3618,7 @@ Light:
   m_Lightmapping: 1
   m_LightShadowCasterMode: 0
   m_AreaSize: {x: 1, y: 1}
-  m_BounceIntensity: 1
+  m_BounceIntensity: 4.42
   m_ColorTemperature: 6570
   m_UseColorTemperature: 0
   m_BoundingSphereOverride: {x: 0, y: 0, z: 0, w: 0}
@@ -3602,13 +3638,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 705507993}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.15570538, y: -0.70926917, z: 0.107688285, w: 0.6790408}
-  m_LocalPosition: {x: 0.18, y: 16.47, z: 0}
+  m_LocalRotation: {x: 0.5345487, y: -0.48090166, z: 0.4648111, w: 0.5166642}
+  m_LocalPosition: {x: 0.17999953, y: 15.7, z: 0.00000074130486}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 158.64, y: 86.638, z: 175.404}
+  m_LocalEulerAnglesHint: {x: 91.949005, y: 0.0019989014, z: 83.953}
 --- !u!114 &705507996
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4286,6 +4322,10 @@ PrefabInstance:
       propertyPath: 'randomImages.Array.data[3]'
       value: 
       objectReference: {fileID: 2800000, guid: 4f5d994664b94de47bea51614e358956, type: 3}
+    - target: {fileID: 3419803761492578804, guid: e14db45d955275f43b39c2fae2cb25ad, type: 3}
+      propertyPath: 'randomImages.Array.data[4]'
+      value: 
+      objectReference: {fileID: 2800000, guid: 6dbd82b41b27ec94f86158c286a777d4, type: 3}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -4374,6 +4414,22 @@ MonoBehaviour:
   electricColor: {r: 0.8, g: 0.95, b: 1, a: 1}
   pulseSpeed: 2.2
   isActive: 1
+--- !u!114 &779598115
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 779598103}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e2202eb3837dfe14a8d331c9c9d5986c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  trapPrefab: {fileID: 0}
+  numberOfTraps: 10
+  spawnAreaCenter: {x: 0, y: 0, z: 0}
+  spawnAreaSize: {x: 0, y: 0, z: 0}
 --- !u!1 &782106553
 GameObject:
   m_ObjectHideFlags: 0
@@ -5024,6 +5080,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: -4757272571856660941, guid: fabd426e7436e954987c534d7f289455, type: 3}
       insertIndex: -1
       addedObject: {fileID: 998453017}
+    - targetCorrespondingSourceObject: {fileID: -4757272571856660941, guid: fabd426e7436e954987c534d7f289455, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 998453019}
     - targetCorrespondingSourceObject: {fileID: 5906377309472057986, guid: fabd426e7436e954987c534d7f289455, type: 3}
       insertIndex: -1
       addedObject: {fileID: 779598107}
@@ -5033,6 +5092,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 5906377309472057986, guid: fabd426e7436e954987c534d7f289455, type: 3}
       insertIndex: -1
       addedObject: {fileID: 779598113}
+    - targetCorrespondingSourceObject: {fileID: 5906377309472057986, guid: fabd426e7436e954987c534d7f289455, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 779598115}
     - targetCorrespondingSourceObject: {fileID: 5586419124457558711, guid: fabd426e7436e954987c534d7f289455, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1605811579}
@@ -5042,6 +5104,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 5586419124457558711, guid: fabd426e7436e954987c534d7f289455, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1605811585}
+    - targetCorrespondingSourceObject: {fileID: 5586419124457558711, guid: fabd426e7436e954987c534d7f289455, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1605811587}
     - targetCorrespondingSourceObject: {fileID: 1862372172917647565, guid: fabd426e7436e954987c534d7f289455, type: 3}
       insertIndex: -1
       addedObject: {fileID: 459530973}
@@ -5051,6 +5116,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 1862372172917647565, guid: fabd426e7436e954987c534d7f289455, type: 3}
       insertIndex: -1
       addedObject: {fileID: 459530979}
+    - targetCorrespondingSourceObject: {fileID: 1862372172917647565, guid: fabd426e7436e954987c534d7f289455, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 459530981}
     - targetCorrespondingSourceObject: {fileID: -5821509697137934524, guid: fabd426e7436e954987c534d7f289455, type: 3}
       insertIndex: -1
       addedObject: {fileID: 871678648}
@@ -5060,6 +5128,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: -5821509697137934524, guid: fabd426e7436e954987c534d7f289455, type: 3}
       insertIndex: -1
       addedObject: {fileID: 871678654}
+    - targetCorrespondingSourceObject: {fileID: -5821509697137934524, guid: fabd426e7436e954987c534d7f289455, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 871678656}
     - targetCorrespondingSourceObject: {fileID: 6993115138845806562, guid: fabd426e7436e954987c534d7f289455, type: 3}
       insertIndex: -1
       addedObject: {fileID: 445478829}
@@ -5069,6 +5140,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 6993115138845806562, guid: fabd426e7436e954987c534d7f289455, type: 3}
       insertIndex: -1
       addedObject: {fileID: 445478835}
+    - targetCorrespondingSourceObject: {fileID: 6993115138845806562, guid: fabd426e7436e954987c534d7f289455, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 445478837}
   m_SourcePrefab: {fileID: 100100000, guid: fabd426e7436e954987c534d7f289455, type: 3}
 --- !u!1001 &860817115
 PrefabInstance:
@@ -5222,6 +5296,22 @@ MonoBehaviour:
   electricColor: {r: 0.8, g: 0.95, b: 1, a: 1}
   pulseSpeed: 2.2
   isActive: 1
+--- !u!114 &871678656
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 871678644}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e2202eb3837dfe14a8d331c9c9d5986c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  trapPrefab: {fileID: 0}
+  numberOfTraps: 10
+  spawnAreaCenter: {x: 0, y: 0, z: 0}
+  spawnAreaSize: {x: 0, y: 0, z: 0}
 --- !u!1 &875284884 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: -7648773145681257910, guid: fabd426e7436e954987c534d7f289455, type: 3}
@@ -5452,6 +5542,22 @@ MonoBehaviour:
   electricColor: {r: 0.8, g: 0.95, b: 1, a: 1}
   pulseSpeed: 2.2
   isActive: 1
+--- !u!114 &998453019
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 998453007}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e2202eb3837dfe14a8d331c9c9d5986c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  trapPrefab: {fileID: 0}
+  numberOfTraps: 10
+  spawnAreaCenter: {x: 0, y: 0, z: 0}
+  spawnAreaSize: {x: 0, y: 0, z: 0}
 --- !u!1001 &1008247007
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -7112,6 +7218,22 @@ MonoBehaviour:
   electricColor: {r: 0.8, g: 0.95, b: 1, a: 1}
   pulseSpeed: 2.2
   isActive: 1
+--- !u!114 &1605811587
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1605811575}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e2202eb3837dfe14a8d331c9c9d5986c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  trapPrefab: {fileID: 0}
+  numberOfTraps: 10
+  spawnAreaCenter: {x: 0, y: 0, z: 0}
+  spawnAreaSize: {x: 0, y: 0, z: 0}
 --- !u!4 &1606737542 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: d965a016d76e3d3478808d7716d097cf, type: 3}
