@@ -15,6 +15,8 @@ public class PlayerPush : MonoBehaviour
 
     public void TryPush()
     {
+        if (GameState.IsGameplayLocked) return;
+
         if (Time.time - lastPushTime < pushCooldown)
             return;
 
@@ -28,7 +30,6 @@ public class PlayerPush : MonoBehaviour
             Vector3 toTarget = hit.transform.position - transform.position;
             Vector3 dirToTarget = toTarget.normalized;
 
-            // Allow only targets within the forward-facing cone
             float angle = Vector3.Angle(transform.forward, dirToTarget);
             if (angle > pushAngle)
                 continue;
@@ -49,7 +50,6 @@ public class PlayerPush : MonoBehaviour
 
         lastPushTime = Time.time;
     }
-
     private void OnDrawGizmosSelected()
     {
         Gizmos.color = new Color(0f, 0.7f, 1f, 0.5f);

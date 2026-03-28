@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -98,10 +98,27 @@ public class PlayerMovement : MonoBehaviour
 
         grounded = Physics.Raycast(transform.position, Vector3.down, playerHeight * 0.5f + 0.3f, whatIsGround);
 
+        // 🔒 CUTSCENE LOCK (IMPORTANT)
+        if (GameState.IsGameplayLocked)
+        {
+            // Stop all movement
+            rb.linearVelocity = new Vector3(0f, rb.linearVelocity.y, 0f);
+
+            // DO NOT process input
+            horizontalInput = 0f;
+            verticalInput = 0f;
+
+            // Keep animations alive (idle animation still plays)
+            UpdateAnimations();
+
+            return;
+        }
+
+        // ✅ Normal gameplay
         MyInput();
         SpeedControl();
         UpdateAnimations();
-        HandleRunningSFX(); // Handles our footstep timer
+        HandleRunningSFX();
 
         if (grounded)
             rb.linearDamping = groundDrag;
