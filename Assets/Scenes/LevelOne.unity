@@ -2764,9 +2764,24 @@ MonoBehaviour:
   m_GameObject: {fileID: 614823503}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 76f4a453935bc8d44b34d43def5a4df9, type: 3}
+  m_Script: {fileID: 11500000, guid: d57c9f955fc5ab947a96cf6c733554da, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  energyBall: {fileID: 643827647}
+  pointsPerSecond: 10
+  players:
+  - playerName: Player 1
+    playerObject: {fileID: 155627015}
+    score: 0
+  - playerName: Player 2
+    playerObject: {fileID: 305284828}
+    score: 0
+  - playerName: Player 3
+    playerObject: {fileID: 1289081960}
+    score: 0
+  - playerName: Player 4
+    playerObject: {fileID: 1679956149}
+    score: 0
 --- !u!1 &634603658
 GameObject:
   m_ObjectHideFlags: 0
@@ -3524,14 +3539,14 @@ Light:
   m_Enabled: 1
   serializedVersion: 11
   m_Type: 1
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_Intensity: 2
-  m_Range: 10
-  m_SpotAngle: 30
+  m_Color: {r: 0.5471698, g: 0.5042087, b: 0.2761659, a: 1}
+  m_Intensity: 6.41
+  m_Range: 29.19
+  m_SpotAngle: 27.698433
   m_InnerSpotAngle: 21.80208
   m_CookieSize: 10
   m_Shadows:
-    m_Type: 2
+    m_Type: 1
     m_Resolution: -1
     m_CustomResolution: -1
     m_Strength: 1
@@ -3575,7 +3590,7 @@ Light:
   m_UseViewFrustumForShadowCasterCull: 1
   m_ForceVisible: 0
   m_ShadowRadius: 0
-  m_ShadowAngle: 0.8
+  m_ShadowAngle: 90
   m_LightUnit: 1
   m_LuxAtDistance: 1
   m_EnableSpotReflector: 1
@@ -3587,13 +3602,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 705507993}
   serializedVersion: 2
-  m_LocalRotation: {x: -0.6830127, y: -0.18301266, z: -0.18301266, w: 0.6830127}
-  m_LocalPosition: {x: 0, y: 3, z: 0}
+  m_LocalRotation: {x: 0.15570538, y: -0.70926917, z: 0.107688285, w: 0.6790408}
+  m_LocalPosition: {x: 0.18, y: 16.47, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: -90, y: -30, z: 0}
+  m_LocalEulerAnglesHint: {x: 158.64, y: 86.638, z: 175.404}
 --- !u!114 &705507996
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4979,6 +4994,9 @@ PrefabInstance:
       insertIndex: 0
       addedObject: {fileID: 912016108}
     m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: fabd426e7436e954987c534d7f289455, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 942334836}
     - targetCorrespondingSourceObject: {fileID: 7861854473326295642, guid: fabd426e7436e954987c534d7f289455, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1820611891}
@@ -5348,6 +5366,26 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 912016107}
   m_Mesh: {fileID: -5495902117074765545, guid: fabd426e7436e954987c534d7f289455, type: 3}
+--- !u!1 &942334835 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: fabd426e7436e954987c534d7f289455, type: 3}
+  m_PrefabInstance: {fileID: 846420378}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &942334836
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 942334835}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cfabb0440166ab443bba8876756fdfa9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_EffectColor: {r: 0, g: 0, b: 0, a: 0.5}
+  m_EffectDistance: {x: 1, y: -1}
+  m_UseGraphicAlpha: 1
 --- !u!1 &965713211 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 2009317221144472193, guid: f2d2a75468b7fc745a588323e1062013, type: 3}
