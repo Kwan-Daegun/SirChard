@@ -59,7 +59,13 @@ public class MainMenuController : MonoBehaviour
     private CanvasGroup      _titleCG;
     private Image            _scanlines;
     private List<Image>      _glowRings  = new List<Image>();
-    private List<(RectTransform rt, CanvasGroup cg)> _btnRoots = new List<(RectTransform, CanvasGroup)>();
+    private struct BtnData { public RectTransform rt; public CanvasGroup cg; public Image face; public Image border; public Image acc; public TextMeshProUGUI lbl; public int playerCount; public Button btn; }
+    private List<BtnData> _btnRoots = new List<BtnData>();
+
+    // Gamepad navigation state
+    private int _selectedIndex = -1;
+    private float _navCooldown = 0.18f;
+    private float _navTimer = 0f;
 
     private struct StarData   { public RectTransform rt; public Image img; public float speed; public float phase; public float baseA; }
     private struct NebulaData { public RectTransform rt; public Image img; public Vector2 dir; public float spd; public float phase; public float baseA; }
@@ -76,6 +82,8 @@ public class MainMenuController : MonoBehaviour
     void Start()
     {
         BuildAll();
+        // default select first button if available
+        if (_btnRoots.Count > 0) SetSelectedIndex(0, notifyEventSystem: false);
         StartCoroutine(IntroSequence());
         StartCoroutine(LoopBackground());
         StartCoroutine(LoopTitle());
@@ -83,7 +91,56 @@ public class MainMenuController : MonoBehaviour
         StartCoroutine(TypewriterRoutine());
     }
 
-    void Update() => TickStars();
+    void Update()
+    {
+        TickStars();
+        HandleGamepad();
+    }
+
+    void HandleGamepad()
+    {
+        if (_btnRoots.Count == 0) return;
+
+        if (_navTimer > 0f) _navTimer -= Time.unscaledDeltaTime;
+
+        float v = Input.GetAxisRaw("Vertical");
+        if (Mathf.Abs(v) > 0.5f && _navTimer <= 0f)
+        {
+            int dir = v > 0f ? -1 : 1; // up is negative index
+            int next = Mathf.Clamp(_selectedIndex + dir, 0, _btnRoots.Count - 1);
+            if (next != _selectedIndex) SetSelectedIndex(next);
+            _navTimer = _navCooldown;
+        }
+
+        if (Input.GetButtonDown("Submit") || Input.GetButtonDown("Fire1"))
+        {
+            if (_selectedIndex >= 0 && _selectedIndex < _btnRoots.Count)
+            {
+                var d = _btnRoots[_selectedIndex];
+                OnClick(d.playerCount, d.rt, d.face, d.border);
+            }
+        }
+    }
+
+    void SetSelectedIndex(int idx, bool notifyEventSystem = true)
+    {
+        if (idx == _selectedIndex) return;
+        if (_selectedIndex >= 0 && _selectedIndex < _btnRoots.Count)
+        {
+            var prev = _btnRoots[_selectedIndex];
+            StartCoroutine(HoverAnim(prev.rt, prev.face, prev.border, prev.acc, prev.lbl, false));
+        }
+        _selectedIndex = idx;
+        if (_selectedIndex >= 0 && _selectedIndex < _btnRoots.Count)
+        {
+            var cur = _btnRoots[_selectedIndex];
+            StartCoroutine(HoverAnim(cur.rt, cur.face, cur.border, cur.acc, cur.lbl, true));
+            if (notifyEventSystem && EventSystem.current)
+            {
+                EventSystem.current.SetSelectedGameObject(cur.rt.gameObject);
+            }
+        }
+    }
 
     // ────────────────────────────────────────────────────────
     #region BUILD
@@ -406,7 +463,7 @@ public class MainMenuController : MonoBehaviour
             AddTrigger(et, EventTriggerType.PointerEnter, _ => { PlaySfx(sfxHover, 0.3f); StartCoroutine(HoverAnim(root, face, border, acc, lbl, true)); });
             AddTrigger(et, EventTriggerType.PointerExit,  _ => StartCoroutine(HoverAnim(root, face, border, acc, lbl, false)));
 
-            _btnRoots.Add((root, cg));
+            _btnRoots.Add(new BtnData { rt = root, cg = cg, face = face, border = border, acc = acc, lbl = lbl, playerCount = cap, btn = btn });
         }
     }
 
@@ -421,7 +478,7 @@ public class MainMenuController : MonoBehaviour
     {
         if (_titleCG) _titleCG.alpha = 0f;
         _titleContainer.localScale = Vector3.one * 0.85f;
-        foreach (var (rt, cg) in _btnRoots) { cg.alpha = 0f; }
+        foreach (var d in _btnRoots) { d.cg.alpha = 0f; }
     }
 
     #endregion
@@ -451,7 +508,8 @@ public class MainMenuController : MonoBehaviour
         // Buttons slide in
         for (int i = 0; i < _btnRoots.Count; i++)
         {
-            var (rt, cg) = _btnRoots[i];
+            var rt = _btnRoots[i].rt;
+            var cg = _btnRoots[i].cg;
             Vector2 target = rt.anchoredPosition + new Vector2(80f,0f);
             StartCoroutine(SlideIn(rt, cg, rt.anchoredPosition, target, 0.45f));
             yield return new WaitForSeconds(0.12f);

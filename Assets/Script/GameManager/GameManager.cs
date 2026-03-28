@@ -7,26 +7,7 @@ using TMPro;
 using UnityEngine.UI;
 
 // ============================================================
-//  GameManager — AAA Self-Building UI Edition
-//  Drop-in replacement for your existing GameManager.cs
-//
-//  WHAT CHANGED:
-//  - Builds ALL panels (pause, win, lose, controls, credits)
-//    entirely in code — no manual panel assignment needed
-//  - All panels match the menu theme (dark navy, cyan accents,
-//    corner brackets, shimmer text, particle burst on win)
-//  - Animated panel transitions (slide + fade in/out)
-//  - Win screen shows which player won with their colour
-//  - Lose screen with red theme
-//  - Pause menu with styled buttons
-//  - Scanline + vignette overlay on all panels
-//
-//  WHAT STAYED THE SAME:
-//  - All public Transform fields (player1-4, spawn1-4)
-//  - All public methods (WinGame, LoseGame, PauseGame, etc.)
-//  - Singleton pattern
-//  - PlayerPrefs player count reading
-//  - CameraControl integration
+//  GameManager — Continuous Score + Custom Names + Pop Effect
 // ============================================================
 
 public class GameManager : MonoBehaviour
@@ -36,6 +17,12 @@ public class GameManager : MonoBehaviour
     [Header("Players & Spawns")]
     public Transform player1, player2, player3, player4;
     public Transform spawn1, spawn2, spawn3, spawn4;
+
+    [Header("Game Rules")]
+    public int scoreToWin = 2000;
+
+    private float[] _playerScores = new float[4];
+    private int _activePlayers;
 
     // ── Colours (match menu theme) ───────────────────────────
     static readonly Color ColBg = new Color(0.02f, 0.03f, 0.10f, 0.96f);
@@ -53,9 +40,11 @@ public class GameManager : MonoBehaviour
         new Color(0.65f, 0.12f, 1.00f, 1f),
         new Color(0.20f, 1.00f, 0.30f, 1f),
     };
-    static readonly string[] PlayerNames = { "PLAYER 1", "PLAYER 2", "PLAYER 3", "PLAYER 4" };
 
-    // ── Runtime UI ───────────────────────────────────────────
+    
+    private string[] _playerNames = { "PLAYER 1", "PLAYER 2", "PLAYER 3", "PLAYER 4" };
+
+    
     private Canvas _canvas;
     private GameObject _pausePanel;
     private GameObject _controlsPanel;
@@ -67,28 +56,37 @@ public class GameManager : MonoBehaviour
     private TextMeshProUGUI _winTitle;
     private Image _winAccent;
 
+    // ── HUD Elements ─────────────────────────────────────────
+    private GameObject _hudContainer;
+    private RectTransform[] _scoreRowRts = new RectTransform[4];
+    private TextMeshProUGUI[] _scoreTexts = new TextMeshProUGUI[4];
+    private TextMeshProUGUI[] _nameTexts = new TextMeshProUGUI[4]; // ++ ADDED
+    private float[] _scoreTargetY = new float[4];
+    private int[] _currentRanks = { 0, 1, 2, 3 }; // ++ ADDED: Tracks ranks for the pop effect
+
     // Particle pool for win screen
     private struct WinParticle { public Transform t; public MeshRenderer mr; public Vector3 vel; public float born; public float life; public Color col; }
     private List<WinParticle> _winParticles = new List<WinParticle>();
     private bool _spawnWinParticles;
 
     private bool _isPaused;
+    private bool _gameOver = false;
 
-    // ────────────────────────────────────────────────────────
+    
     #region Unity Lifecycle
     // ────────────────────────────────────────────────────────
 
     private void Awake()
     {
-        // Singleton
         if (Instance == null) Instance = this;
         else { Destroy(gameObject); return; }
 
-        // Spawn players
+        _activePlayers = PlayerPrefs.GetInt("PlayerCount", 2);
+
         SpawnPlayers();
 
-        // Build UI
         BuildCanvas();
+        BuildHUD();
         BuildPausePanel();
         BuildControlsPanel();
         BuildCreditsPanel();
@@ -97,17 +95,51 @@ public class GameManager : MonoBehaviour
         HideAllPanels();
     }
 
+
     private void Start()
     {
-        Time.timeScale = 1f;
-        int playerCount = PlayerPrefs.GetInt("PlayerCount", 2);
+        StartCoroutine(SetupCameraDelayed());
+    }
+
+    IEnumerator SetupCameraDelayed()
+    {
+        yield return null;
+
+        yield return new WaitUntil(() =>
+            player1 != null &&
+            player1.gameObject.activeInHierarchy
+        );
+
+        yield return StartCoroutine(WaitForStablePosition(player1));
+
         CameraControl cam = FindAnyObjectByType<CameraControl>();
+
         if (cam != null)
         {
-            cam.SetTargets(player1, player2, player3, player4, playerCount);
-            cam.SetStartPositionAndSize();
+            cam.SetTargets(player1, player2, player3, player4, _activePlayers);
         }
     }
+
+    IEnumerator WaitForStablePosition(Transform target)
+    {
+        int stableFrames = 0;
+        Vector3 lastPos = target.position;
+
+        while (stableFrames < 5)
+        {
+            yield return null;
+
+            float dist = Vector3.Distance(target.position, lastPos);
+
+            if (dist < 0.001f)
+                stableFrames++;
+            else
+                stableFrames = 0;
+
+            lastPos = target.position;
+        }
+    }
+
 
     private void Update()
     {
@@ -122,6 +154,109 @@ public class GameManager : MonoBehaviour
         }
 
         if (_spawnWinParticles) TickWinParticles();
+
+        AnimateHUD();
+    }
+
+    #endregion
+
+    // ────────────────────────────────────────────────────────
+    #region SCORE TRACKING & HUD LOGIC
+    // ────────────────────────────────────────────────────────
+
+    // ++ ADDED: Receives custom names from PlayerManager
+    public void SetPlayerName(int playerIndex, string newName)
+    {
+        if (playerIndex < 1 || playerIndex > 4) return;
+        int arrayIndex = playerIndex - 1;
+
+        _playerNames[arrayIndex] = newName;
+
+        if (_nameTexts[arrayIndex] != null)
+        {
+            _nameTexts[arrayIndex].text = newName;
+        }
+    }
+
+    public void SetPlayerScore(int playerIndex, float currentScore)
+    {
+        if (_gameOver) return;
+        if (playerIndex < 1 || playerIndex > 4) return;
+
+        int arrayIndex = playerIndex - 1;
+        _playerScores[arrayIndex] = currentScore;
+
+        int displayScore = Mathf.FloorToInt(currentScore);
+
+        if (_scoreTexts[arrayIndex] != null)
+        {
+            _scoreTexts[arrayIndex].text = displayScore.ToString();
+        }
+
+        if (displayScore >= scoreToWin)
+        {
+            WinGame(playerIndex);
+            return;
+        }
+
+        SortLeaderboard();
+    }
+
+    private void SortLeaderboard()
+    {
+        List<int> ranks = new List<int>();
+        for (int i = 0; i < _activePlayers; i++) ranks.Add(i);
+
+        ranks.Sort((a, b) => _playerScores[b].CompareTo(_playerScores[a]));
+
+        for (int rank = 0; rank < ranks.Count; rank++)
+        {
+            int pIndex = ranks[rank];
+            _scoreTargetY[pIndex] = -(rank * 70f);
+
+            // ++ ADDED: Trigger pop effect if they moved up in rank
+            if (rank < _currentRanks[pIndex])
+            {
+                StartCoroutine(PopScoreRow(pIndex));
+            }
+            _currentRanks[pIndex] = rank;
+        }
+    }
+
+    private void AnimateHUD()
+    {
+        for (int i = 0; i < _activePlayers; i++)
+        {
+            if (_scoreRowRts[i] != null)
+            {
+                float currentY = _scoreRowRts[i].anchoredPosition.y;
+                float newY = Mathf.Lerp(currentY, _scoreTargetY[i], Time.deltaTime * 8f);
+                _scoreRowRts[i].anchoredPosition = new Vector2(_scoreRowRts[i].anchoredPosition.x, newY);
+            }
+        }
+    }
+
+    // ++ ADDED: Pop effect Coroutine
+    private IEnumerator PopScoreRow(int pIndex)
+    {
+        if (_scoreRowRts[pIndex] == null) yield break;
+        Transform t = _scoreRowRts[pIndex];
+        float el = 0; float dur = 0.15f;
+
+        while (el < dur)
+        {
+            el += Time.deltaTime;
+            t.localScale = Vector3.Lerp(Vector3.one, Vector3.one * 1.15f, el / dur);
+            yield return null;
+        }
+        el = 0;
+        while (el < dur)
+        {
+            el += Time.deltaTime;
+            t.localScale = Vector3.Lerp(Vector3.one * 1.15f, Vector3.one, el / dur);
+            yield return null;
+        }
+        t.localScale = Vector3.one;
     }
 
     #endregion
@@ -165,6 +300,69 @@ public class GameManager : MonoBehaviour
         cs.referenceResolution = new Vector2(1920, 1080);
         cs.matchWidthOrHeight = 0.5f;
         go.AddComponent<GraphicRaycaster>();
+    }
+
+    // ── HUD PANEL ───────────────────────────────────────────
+
+    void BuildHUD()
+    {
+        _hudContainer = new GameObject("HUDContainer");
+        _hudContainer.transform.SetParent(_canvas.transform, false);
+        var hudRt = _hudContainer.AddComponent<RectTransform>();
+
+        hudRt.anchorMin = new Vector2(0, 1);
+        hudRt.anchorMax = new Vector2(0, 1);
+        hudRt.pivot = new Vector2(0, 1);
+        hudRt.anchoredPosition = new Vector2(40, -40);
+        hudRt.sizeDelta = new Vector2(350, 400);
+
+        for (int i = 0; i < 4; i++)
+        {
+            var row = new GameObject("ScoreRow_P" + (i + 1));
+            row.transform.SetParent(_hudContainer.transform, false);
+            var rt = row.AddComponent<RectTransform>();
+            rt.anchorMin = new Vector2(0, 1); rt.anchorMax = new Vector2(0, 1); rt.pivot = new Vector2(0, 1);
+            rt.sizeDelta = new Vector2(300, 60);
+
+            _scoreTargetY[i] = -(i * 70f);
+            rt.anchoredPosition = new Vector2(0, _scoreTargetY[i]);
+            _scoreRowRts[i] = rt;
+
+            var bg = MakeImage("BG", row.transform, new Color(0, 0, 0, 0.4f));
+            Stretch(bg.rectTransform);
+            bg.raycastTarget = false;
+
+            var acc = MakeImage("Acc", row.transform, PlayerColors[i]);
+            acc.rectTransform.anchorMin = new Vector2(0, 0); acc.rectTransform.anchorMax = new Vector2(0, 1);
+            acc.rectTransform.sizeDelta = new Vector2(6, 0);
+            acc.rectTransform.anchoredPosition = new Vector2(3, 0);
+            acc.raycastTarget = false;
+
+            // ++ CHANGED: Now references the string array so custom names work
+            var nTmp = MakeTMP("Name", row.transform, _playerNames[i]);
+            nTmp.fontSize = 24f;
+            nTmp.fontStyle = FontStyles.Bold;
+            nTmp.alignment = TextAlignmentOptions.MidlineLeft;
+            nTmp.color = PlayerColors[i];
+            nTmp.rectTransform.anchorMin = Vector2.zero; nTmp.rectTransform.anchorMax = Vector2.one;
+            nTmp.rectTransform.offsetMin = new Vector2(20, 0); nTmp.rectTransform.offsetMax = new Vector2(-120, 0);
+            nTmp.raycastTarget = false;
+
+            _nameTexts[i] = nTmp; // Save reference for later
+
+            var sTmp = MakeTMP("ScoreText", row.transform, "0");
+            sTmp.fontSize = 34f;
+            sTmp.fontStyle = FontStyles.Bold;
+            sTmp.alignment = TextAlignmentOptions.MidlineRight;
+            sTmp.color = ColText;
+            sTmp.rectTransform.anchorMin = Vector2.zero; sTmp.rectTransform.anchorMax = Vector2.one;
+            sTmp.rectTransform.offsetMin = new Vector2(150, 0); sTmp.rectTransform.offsetMax = new Vector2(-15, 0);
+            sTmp.raycastTarget = false;
+
+            _scoreTexts[i] = sTmp;
+
+            if (i >= _activePlayers) row.SetActive(false);
+        }
     }
 
     // ── PAUSE PANEL ─────────────────────────────────────────
@@ -244,7 +442,6 @@ public class GameManager : MonoBehaviour
     {
         _winPanel = MakePanel("WinPanel", new Color(0.02f, 0.06f, 0.04f, 0.97f));
 
-        // Accent bar behind title
         _winAccent = MakeImage("WinAccent", _winPanel.transform,
             new Color(ColGold.r, ColGold.g, ColGold.b, 0.12f));
         _winAccent.rectTransform.anchorMin = _winAccent.rectTransform.anchorMax = Vector2.one * 0.5f;
@@ -255,7 +452,6 @@ public class GameManager : MonoBehaviour
         MakeTitle(_winPanel.transform, "VICTORY!", ColGold, 80f, new Vector2(0f, 200f));
         MakeDivider(_winPanel.transform, ColGold, new Vector2(0f, 120f), 500f);
 
-        // Win subtitle — updated dynamically in WinGame(int)
         _winTitle = MakeTMP("WinSub", _winPanel.transform, "");
         _winTitle.fontSize = 32f;
         _winTitle.alignment = TextAlignmentOptions.Center;
@@ -321,15 +517,20 @@ public class GameManager : MonoBehaviour
         HideAllPanels();
     }
 
-    /// <summary>Call with no arg for generic win, or pass playerIndex 1-4.</summary>
     public void WinGame(int winnerIndex = 0)
     {
+        if (_gameOver) return;
+        _gameOver = true;
+
+        if (_hudContainer) _hudContainer.SetActive(false);
+
         Time.timeScale = 0f;
         if (_winTitle != null)
         {
             if (winnerIndex >= 1 && winnerIndex <= 4)
             {
-                _winTitle.text = PlayerNames[winnerIndex - 1] + " WINS!";
+                // ++ CHANGED: Uses _playerNames to show the custom name
+                _winTitle.text = _playerNames[winnerIndex - 1] + " WINS!";
                 _winTitle.color = PlayerColors[winnerIndex - 1];
                 if (_winAccent) _winAccent.color = new Color(
                     PlayerColors[winnerIndex - 1].r,
@@ -346,11 +547,14 @@ public class GameManager : MonoBehaviour
         StartCoroutine(WinParticleLoop());
     }
 
-    // Original signature kept for compatibility
     public void WinGame() => WinGame(0);
 
     public void LoseGame()
     {
+        if (_gameOver) return;
+        _gameOver = true;
+
+        if (_hudContainer) _hudContainer.SetActive(false);
         Time.timeScale = 0f;
         ShowPanel(_losePanel);
     }
@@ -389,7 +593,6 @@ public class GameManager : MonoBehaviour
 
     public void QuitGame()
     {
-        Debug.Log("Quitting game...");
         Application.Quit();
     }
 
@@ -461,7 +664,6 @@ public class GameManager : MonoBehaviour
 
         while (_spawnWinParticles)
         {
-            // Spawn from random screen edges
             for (int i = 0; i < 3; i++)
             {
                 float x = Random.Range(-800f, 800f);
@@ -540,12 +742,10 @@ public class GameManager : MonoBehaviour
         rt.anchorMin = Vector2.zero; rt.anchorMax = Vector2.one;
         rt.offsetMin = Vector2.zero; rt.offsetMax = Vector2.zero;
 
-        // Dark overlay
         var bg = go.AddComponent<Image>();
         bg.color = bgColor;
         bg.raycastTarget = true;
 
-        // CanvasGroup for fade
         var cg = go.AddComponent<CanvasGroup>();
         cg.alpha = 1f;
 
@@ -555,7 +755,6 @@ public class GameManager : MonoBehaviour
 
     TextMeshProUGUI MakeTitle(Transform parent, string text, Color col, float size, Vector2 pos)
     {
-        // Shadow
         var sh = MakeTMP("TitleShadow", parent, text);
         sh.fontSize = size; sh.fontStyle = FontStyles.Bold | FontStyles.UpperCase;
         sh.alignment = TextAlignmentOptions.Center;
@@ -565,7 +764,6 @@ public class GameManager : MonoBehaviour
         sh.rectTransform.anchoredPosition = pos + new Vector2(4f, -5f);
         sh.raycastTarget = false;
 
-        // Main
         var t = MakeTMP("Title", parent, text);
         t.fontSize = size; t.fontStyle = FontStyles.Bold | FontStyles.UpperCase;
         t.alignment = TextAlignmentOptions.Center;
@@ -597,7 +795,6 @@ public class GameManager : MonoBehaviour
         img.rectTransform.anchoredPosition = pos;
         img.raycastTarget = false;
 
-        // Centre dot
         var dot = MakeImage("Dot", parent, col);
         dot.rectTransform.anchorMin = dot.rectTransform.anchorMax = Vector2.one * 0.5f;
         dot.rectTransform.sizeDelta = new Vector2(6f, 6f);
@@ -615,11 +812,9 @@ public class GameManager : MonoBehaviour
         rt.sizeDelta = new Vector2(420f, 60f);
         rt.anchoredPosition = pos;
 
-        // Border
         var border = MakeImage("Border", root.transform, new Color(accentCol.r, accentCol.g, accentCol.b, 0.6f));
         Stretch(border.rectTransform); border.raycastTarget = false;
 
-        // Face
         var face = MakeImage("Face", root.transform, new Color(0.04f, 0.10f, 0.24f, 0.94f));
         face.rectTransform.anchorMin = Vector2.zero;
         face.rectTransform.anchorMax = Vector2.one;
@@ -627,7 +822,6 @@ public class GameManager : MonoBehaviour
         face.rectTransform.offsetMax = new Vector2(-2f, -2f);
         face.raycastTarget = false;
 
-        // Left accent bar
         var acc = MakeImage("Acc", root.transform, accentCol);
         acc.rectTransform.anchorMin = new Vector2(0f, 0.5f);
         acc.rectTransform.anchorMax = new Vector2(0f, 0.5f);
@@ -636,7 +830,6 @@ public class GameManager : MonoBehaviour
         acc.rectTransform.anchoredPosition = new Vector2(2f, 0f);
         acc.raycastTarget = false;
 
-        // Label
         var lbl = MakeTMP("Lbl", root.transform, label);
         lbl.fontSize = 22f; lbl.fontStyle = FontStyles.Bold;
         lbl.alignment = TextAlignmentOptions.Center;
@@ -646,7 +839,6 @@ public class GameManager : MonoBehaviour
         lbl.rectTransform.offsetMin = lbl.rectTransform.offsetMax = Vector2.zero;
         lbl.raycastTarget = false;
 
-        // Hit area + button
         var hit = MakeImage("Hit", root.transform, Color.clear);
         Stretch(hit.rectTransform); hit.raycastTarget = true;
         var btn = root.AddComponent<Button>();
@@ -654,7 +846,6 @@ public class GameManager : MonoBehaviour
         btn.transition = Selectable.Transition.None;
         btn.onClick.AddListener(onClick);
 
-        // Hover
         var et = root.AddComponent<UnityEngine.EventSystems.EventTrigger>();
         AddTrigger(et, UnityEngine.EventSystems.EventTriggerType.PointerEnter, _ =>
             StartCoroutine(BtnHover(rt, face, border, lbl, accentCol, true)));
@@ -687,7 +878,6 @@ public class GameManager : MonoBehaviour
 
     void MakeControlRow(Transform parent, string actionLabel, string keyLabel, float y)
     {
-        // Action
         var a = MakeTMP("Act", parent, actionLabel);
         a.fontSize = 24f; a.fontStyle = FontStyles.Bold;
         a.alignment = TextAlignmentOptions.MidlineRight;
@@ -697,14 +887,12 @@ public class GameManager : MonoBehaviour
         a.rectTransform.anchoredPosition = new Vector2(-30f, y);
         a.raycastTarget = false;
 
-        // Divider dot
         var dot = MakeImage("D", parent, new Color(ColAccentA.r, ColAccentA.g, ColAccentA.b, 0.4f));
         dot.rectTransform.anchorMin = dot.rectTransform.anchorMax = Vector2.one * 0.5f;
         dot.rectTransform.sizeDelta = new Vector2(4f, 4f);
         dot.rectTransform.anchoredPosition = new Vector2(0f, y);
         dot.raycastTarget = false;
 
-        // Key
         var k = MakeTMP("Key", parent, keyLabel);
         k.fontSize = 20f;
         k.alignment = TextAlignmentOptions.MidlineLeft;

@@ -64,13 +64,13 @@ public class PlayerVisuals : MonoBehaviour
     private Rigidbody _rb;
 
     // Visual objects
-    private Transform    _haloParent;
+    private Transform _haloParent;
     private MeshRenderer _haloRenderer;
-    private Material     _haloMat;
-    private Transform    _auraRing;
+    private Material _haloMat;
+    private Transform _auraRing;
     private MeshRenderer _auraRingRenderer;
-    private Material     _auraRingMat;
-    private Transform    _glowParent;
+    private Material _auraRingMat;
+    private Transform _glowParent;
 
     // Dizzy stars (knockdown)
     private List<(Transform t, MeshRenderer mr, float angle, float speed)> _dizzyStars
@@ -80,25 +80,25 @@ public class PlayerVisuals : MonoBehaviour
     // General particle pool
     private struct Particle
     {
-        public Transform    t;
+        public Transform t;
         public MeshRenderer mr;
-        public Vector3      vel;
-        public float        born;
-        public float        life;
-        public Color        col;
-        public float        baseSize;
-        public bool         isBubble;  // bubbles float up, particles arc down
+        public Vector3 vel;
+        public float born;
+        public float life;
+        public Color col;
+        public float baseSize;
+        public bool isBubble;  // bubbles float up, particles arc down
     }
     private List<Particle> _particles = new List<Particle>();
 
     // Trail pool
     private struct Trail
     {
-        public Transform    t;
+        public Transform t;
         public MeshRenderer mr;
-        public float        born;
-        public float        life;
-        public Color        col;
+        public float born;
+        public float life;
+        public Color col;
     }
     private List<Trail> _trails = new List<Trail>();
 
@@ -109,13 +109,23 @@ public class PlayerVisuals : MonoBehaviour
     void Awake()
     {
         int idx = Mathf.Clamp(playerIndex - 1, 0, 3);
-        _primary   = PrimaryColors[idx];
+        _primary = PrimaryColors[idx];
         _secondary = SecondaryColors[idx];
-        _sparkle   = SparkleColors[idx];
+        _sparkle = SparkleColors[idx];
 
         _rb = GetComponent<Rigidbody>();
         if (!bodyRenderer) bodyRenderer = GetComponentInChildren<Renderer>();
-        if (!movement)     movement     = GetComponent<PlayerMovement>();
+        if (!movement) movement = GetComponent<PlayerMovement>();
+
+        // Force ALL child renderers to cast shadows onto the floor
+        foreach (var mr in GetComponentsInChildren<MeshRenderer>())
+        {
+            if (!mr) continue;
+            string n = mr.gameObject.name;
+            if (n == "Halo" || n == "AuraRing" || n == "DizzyStar") continue;
+            mr.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.On;
+            mr.receiveShadows = true;
+        }
 
         // World-space parent for effects
         var wp = new GameObject("VFXWorld_P" + playerIndex);
@@ -145,51 +155,40 @@ public class PlayerVisuals : MonoBehaviour
     {
         if (_worldParent) Destroy(_worldParent.gameObject);
         foreach (var p in _particles) if (p.t) Destroy(p.t.gameObject);
-        foreach (var t in _trails)    if (t.t) Destroy(t.t.gameObject);
+        foreach (var t in _trails) if (t.t) Destroy(t.t.gameObject);
     }
 
     // ────────────────────────────────────────────────────────
     #region BUILD
     // ────────────────────────────────────────────────────────
 
+    // Halo lives in WORLD SPACE and raycasts to floor every frame
+    private GameObject _haloGO;
+
     void BuildHalo()
     {
-        // Soft glowing disc on the ground — like a cartoon character shadow glow
-        var go = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
-        go.name = "Halo";
-        go.transform.SetParent(transform, false);
-        go.transform.localPosition = new Vector3(0f, -1.4f, 0f);
-        go.transform.localScale    = new Vector3(1.8f, 0.008f, 1.8f);
-        Destroy(go.GetComponent<Collider>());
-
+        _haloGO = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+        _haloGO.name = "Halo";
+        _haloGO.transform.SetParent(_worldParent, false);
+        _haloGO.transform.localScale = new Vector3(0.5f, 0.003f, 0.5f);
+        Destroy(_haloGO.GetComponent<Collider>());
         _haloMat = new Material(UnlitShader());
-        Color hc = _primary; hc.a = 0.5f;
-        _haloMat.color = hc;
-
-        _haloRenderer = go.GetComponent<MeshRenderer>();
+        _haloMat.color = new Color(0.1f, 0.1f, 0.1f, 0.25f); // dark gray, very subtle
+        _haloRenderer = _haloGO.GetComponent<MeshRenderer>();
         _haloRenderer.material = _haloMat;
         _haloRenderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
-        _haloParent = go.transform;
+        _haloParent = _haloGO.transform;
     }
 
     void BuildAuraRing()
     {
-        // Thin torus-like ring — faked with a flat cylinder just above ground
-        var go = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
-        go.name = "AuraRing";
-        go.transform.SetParent(transform, false);
-        go.transform.localPosition = new Vector3(0f, -1.35f, 0f);
-        go.transform.localScale    = new Vector3(2.2f, 0.005f, 2.2f);
-        Destroy(go.GetComponent<Collider>());
-
+        // Invisible — was causing pink tint, disabled
+        var go = new GameObject("AuraRing"); // empty GO, no mesh
+        go.transform.SetParent(_worldParent, false);
         _auraRingMat = new Material(UnlitShader());
-        Color rc = _secondary; rc.a = 0.35f;
-        _auraRingMat.color = rc;
-
-        _auraRingRenderer = go.GetComponent<MeshRenderer>();
-        _auraRingRenderer.material = _auraRingMat;
-        _auraRingRenderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+        _auraRingMat.color = Color.clear;
         _auraRing = go.transform;
+        _auraRingRenderer = null; // no renderer needed
     }
 
     void BuildDizzyStars()
@@ -201,7 +200,7 @@ public class PlayerVisuals : MonoBehaviour
             go.name = "DizzyStar";
             go.transform.SetParent(transform, false);
             go.transform.localPosition = Vector3.up * 2.2f;
-            go.transform.localScale    = Vector3.one * Random.Range(0.08f, 0.14f);
+            go.transform.localScale = Vector3.one * Random.Range(0.08f, 0.14f);
             Destroy(go.GetComponent<Collider>());
 
             var mat = new Material(UnlitShader());
@@ -229,19 +228,38 @@ public class PlayerVisuals : MonoBehaviour
         {
             float t = Time.time;
 
-            // Cute squish-stretch breathe on the halo
-            float breathe = 1f + 0.10f * Mathf.Sin(t * 2.0f);
-            if (_haloParent)
-                _haloParent.localScale = new Vector3(1.8f * breathe, 0.008f, 1.8f * breathe);
+            // Raycast straight down from player to find exact floor position
+            Vector3 floorPos = transform.position + Vector3.down * 10f; // fallback
+            if (Physics.Raycast(transform.position + Vector3.up * 0.1f,
+                Vector3.down, out RaycastHit hit, 20f))
+            {
+                floorPos = hit.point + Vector3.up * 0.02f; // just above floor
+            }
 
-            // Alpha pulse — brighter when moving
-            float speed = _rb ? new Vector3(_rb.linearVelocity.x, 0f, _rb.linearVelocity.z).magnitude : 0f;
-            float baseAlpha = Mathf.Lerp(0.25f, 0.55f, speed / 8f);
-            float pulse = baseAlpha + 0.10f * Mathf.Sin(t * 2.0f);
+            // Move halo to floor position directly below player
+            if (_haloParent)
+                _haloParent.position = floorPos;
+            if (_auraRing)
+                _auraRing.position = floorPos + Vector3.up * 0.01f;
+
+            // Scale based on height — smaller when high up, bigger near floor
+            float height = transform.position.y - floorPos.y;
+            float scaleMult = Mathf.Lerp(1f, 0.4f, Mathf.Clamp01(height / 5f));
+
+            float breathe = 1f + 0.06f * Mathf.Sin(t * 2.0f);
+            if (_haloParent)
+                _haloParent.localScale = new Vector3(
+                    0.8f * breathe * scaleMult, 0.005f,
+                    0.8f * breathe * scaleMult);
+
+            float speed = _rb ? new Vector3(_rb.linearVelocity.x, 0f,
+                _rb.linearVelocity.z).magnitude : 0f;
+            float baseAlpha = Mathf.Lerp(0.15f, 0.35f, speed / 8f)
+                            * Mathf.Lerp(0.8f, 0.1f, Mathf.Clamp01(height / 5f));
             if (_haloMat)
             {
-                Color c = _primary; c.a = pulse;
-                _haloMat.color = c;
+                // Always gray — never player color
+                _haloMat.color = new Color(0.2f, 0.2f, 0.2f, baseAlpha);
             }
 
             yield return null;
@@ -253,23 +271,16 @@ public class PlayerVisuals : MonoBehaviour
         while (true)
         {
             float t = Time.time;
-
-            // Spin slowly
             if (_auraRing) _auraRing.Rotate(0f, 60f * Time.deltaTime, 0f);
-
-            // Bouncy scale — cute squish on a different frequency to halo
             float bounce = 1f + 0.07f * Mathf.Sin(t * 2.8f + 1f);
             if (_auraRing)
-                _auraRing.localScale = new Vector3(2.2f * bounce, 0.005f, 2.2f * bounce);
-
-            // Pulse alpha
+                _auraRing.localScale = new Vector3(2.2f * bounce, 0.004f, 2.2f * bounce);
             if (_auraRingMat)
             {
                 Color c = _secondary;
-                c.a = 0.20f + 0.15f * Mathf.Sin(t * 2.8f + 1f);
+                c.a = 0.15f + 0.12f * Mathf.Sin(t * 2.8f + 1f);
                 _auraRingMat.color = c;
             }
-
             yield return null;
         }
     }
@@ -288,8 +299,8 @@ public class PlayerVisuals : MonoBehaviour
                 for (int i = 0; i < count; i++)
                 {
                     Vector2 rand = Random.insideUnitCircle * 0.3f;
-                    Vector3 pos  = transform.position + new Vector3(rand.x, Random.Range(0.5f, 1.5f), rand.y);
-                    Vector3 vel  = new Vector3(
+                    Vector3 pos = transform.position + new Vector3(rand.x, Random.Range(0.5f, 1.5f), rand.y);
+                    Vector3 vel = new Vector3(
                         Random.Range(-0.3f, 0.3f),
                         Random.Range(1.2f, 2.5f),
                         Random.Range(-0.3f, 0.3f));
@@ -318,9 +329,9 @@ public class PlayerVisuals : MonoBehaviour
                 for (int i = 0; i < 2; i++)
                 {
                     Vector2 rand = Random.insideUnitCircle * 0.25f;
-                    Vector3 pos  = transform.position + new Vector3(rand.x, 0.15f, rand.y);
-                    Vector3 vel  = back * Random.Range(1.5f, 3f) + Vector3.up * Random.Range(0.2f, 0.8f);
-                    Color col    = Random.value > 0.5f ? _secondary : _sparkle;
+                    Vector3 pos = transform.position + new Vector3(rand.x, 0.15f, rand.y);
+                    Vector3 vel = back * Random.Range(1.5f, 3f) + Vector3.up * Random.Range(0.2f, 0.8f);
+                    Color col = Random.value > 0.5f ? _secondary : _sparkle;
                     col.a = 1f;
                     SpawnParticle(pos, vel, col, Random.Range(0.15f, 0.3f), Random.Range(0.04f, 0.09f), false);
                 }
@@ -377,10 +388,10 @@ public class PlayerVisuals : MonoBehaviour
         int count = 16;
         for (int i = 0; i < count; i++)
         {
-            float angle  = (i / (float)count) * Mathf.PI * 2f;
-            Vector3 dir  = new Vector3(Mathf.Cos(angle), 0.2f, Mathf.Sin(angle));
-            Vector3 pos  = transform.position + Vector3.up * 0.3f;
-            Color col    = i % 3 == 0 ? _sparkle : i % 3 == 1 ? _primary : _secondary;
+            float angle = (i / (float)count) * Mathf.PI * 2f;
+            Vector3 dir = new Vector3(Mathf.Cos(angle), 0.2f, Mathf.Sin(angle));
+            Vector3 pos = transform.position + Vector3.up * 0.3f;
+            Color col = i % 3 == 0 ? _sparkle : i % 3 == 1 ? _primary : _secondary;
             col.a = 1f;
             SpawnParticle(pos, dir * Random.Range(3f, 7f), col, Random.Range(0.2f, 0.45f),
                 Random.Range(0.06f, 0.14f), false);
@@ -393,7 +404,7 @@ public class PlayerVisuals : MonoBehaviour
             while (t < 0.2f)
             {
                 t += Time.deltaTime;
-                float p    = t / 0.2f;
+                float p = t / 0.2f;
                 float squish = p < 0.5f
                     ? Mathf.Lerp(1f, 2.2f, p * 2f)       // squash out
                     : Mathf.Lerp(2.2f, 1f, (p - 0.5f) * 2f); // spring back
@@ -417,7 +428,7 @@ public class PlayerVisuals : MonoBehaviour
                 Random.Range(0.3f, 1.2f),
                 Mathf.Sin(angle));
             Color col = confetti[i % confetti.Length]; col.a = 1f;
-            float sz  = Random.Range(0.05f, 0.16f);
+            float sz = Random.Range(0.05f, 0.16f);
             SpawnParticle(hitPoint, dir * Random.Range(4f, 11f), col,
                 Random.Range(0.35f, 0.7f), sz, false);
         }
@@ -474,8 +485,8 @@ public class PlayerVisuals : MonoBehaviour
         for (int i = 0; i < 20; i++)
         {
             Vector2 rand = Random.insideUnitCircle * 0.5f;
-            Vector3 pos  = transform.position + new Vector3(rand.x, 0.2f, rand.y);
-            Vector3 vel  = new Vector3(
+            Vector3 pos = transform.position + new Vector3(rand.x, 0.2f, rand.y);
+            Vector3 vel = new Vector3(
                 Random.Range(-1.5f, 1.5f),
                 Random.Range(3f, 7f),
                 Random.Range(-1.5f, 1.5f));
@@ -549,7 +560,7 @@ public class PlayerVisuals : MonoBehaviour
     void TickDizzyStars()
     {
         float radius = 0.55f;
-        float headY  = 2.2f; // height above transform origin
+        float headY = 2.2f; // height above transform origin
         for (int i = 0; i < _dizzyStars.Count; i++)
         {
             var (t, mr, angle, speed) = _dizzyStars[i];
@@ -585,7 +596,7 @@ public class PlayerVisuals : MonoBehaviour
         go.name = "P";
         Destroy(go.GetComponent<Collider>());
         go.transform.SetParent(_worldParent, false);
-        go.transform.position   = pos;
+        go.transform.position = pos;
         go.transform.localScale = Vector3.one * size;
 
         var mat = new Material(UnlitShader());
@@ -596,9 +607,14 @@ public class PlayerVisuals : MonoBehaviour
 
         _particles.Add(new Particle
         {
-            t=go.transform, mr=mr, vel=vel,
-            born=Time.time, life=life, col=col,
-            baseSize=size, isBubble=isBubble
+            t = go.transform,
+            mr = mr,
+            vel = vel,
+            born = Time.time,
+            life = life,
+            col = col,
+            baseSize = size,
+            isBubble = isBubble
         });
     }
 
@@ -608,7 +624,7 @@ public class PlayerVisuals : MonoBehaviour
         go.name = "Tr";
         Destroy(go.GetComponent<Collider>());
         go.transform.SetParent(_worldParent, false);
-        go.transform.position   = pos;
+        go.transform.position = pos;
         go.transform.localScale = Vector3.one * 0.18f;
 
         var mat = new Material(UnlitShader());
@@ -617,7 +633,7 @@ public class PlayerVisuals : MonoBehaviour
         mr.material = mat;
         mr.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
 
-        _trails.Add(new Trail { t=go.transform, mr=mr, born=Time.time, life=life, col=col });
+        _trails.Add(new Trail { t = go.transform, mr = mr, born = Time.time, life = life, col = col });
     }
 
     void TickParticles()
@@ -679,7 +695,7 @@ public class PlayerVisuals : MonoBehaviour
             if (prog >= 1f) { Destroy(tr.t.gameObject); _trails.RemoveAt(i); continue; }
 
             float alpha = Mathf.Lerp(0.6f, 0f, prog);
-            float sc    = Mathf.Lerp(0.18f, 0.03f, prog);
+            float sc = Mathf.Lerp(0.18f, 0.03f, prog);
             tr.t.localScale = Vector3.one * sc;
             var c = tr.col; c.a = alpha;
             tr.mr.material.color = c;
