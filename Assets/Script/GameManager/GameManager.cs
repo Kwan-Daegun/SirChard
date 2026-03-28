@@ -21,6 +21,9 @@ public class GameManager : MonoBehaviour
     [Header("Game Rules")]
     public int scoreToWin = 2000;
 
+    [Header("Font Settings")]
+    public TMP_FontAsset customFont;
+
     private float[] _playerScores = new float[4];
     private int _activePlayers;
 
@@ -41,10 +44,10 @@ public class GameManager : MonoBehaviour
         new Color(0.20f, 1.00f, 0.30f, 1f),
     };
 
-    
+
     private string[] _playerNames = { "PLAYER 1", "PLAYER 2", "PLAYER 3", "PLAYER 4" };
 
-    
+
     private Canvas _canvas;
     private GameObject _pausePanel;
     private GameObject _controlsPanel;
@@ -72,7 +75,7 @@ public class GameManager : MonoBehaviour
     private bool _isPaused;
     private bool _gameOver = false;
 
-    
+
     #region Unity Lifecycle
     // ────────────────────────────────────────────────────────
 
@@ -951,7 +954,14 @@ public class GameManager : MonoBehaviour
     TextMeshProUGUI MakeTMP(string name, Transform parent, string text)
     {
         var go = new GameObject(name); go.transform.SetParent(parent, false);
-        var tmp = go.AddComponent<TextMeshProUGUI>(); tmp.text = text; return tmp;
+        var tmp = go.AddComponent<TextMeshProUGUI>();
+        tmp.text = text;
+        if (customFont != null)
+        {
+            tmp.font = customFont;
+            tmp.UpdateFontAsset();
+        }
+        return tmp;
     }
 
     void Stretch(RectTransform rt)

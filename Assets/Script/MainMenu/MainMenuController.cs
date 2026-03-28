@@ -6,22 +6,6 @@ using UnityEngine.UI;
 using TMPro;
 using UnityEngine.EventSystems;
 
-// ============================================================
-//  MainMenuController — FULL AAA SELF-BUILDING Edition
-//
-//  HOW TO USE:
-//  1. DELETE your old MainMenuController from the scene.
-//  2. Create an empty GameObject, name it "MainMenu".
-//  3. Drag this script onto it. That's it. Hit Play.
-//
-//  It builds the ENTIRE UI from scratch — background, stars,
-//  nebulas, title, rings, buttons, particles, flash overlay.
-//  Nothing to wire up. Nothing to drag. Just works.
-//
-//  Only change "gameSceneName" to match your actual scene name
-//  in the Inspector (defaults to "LevelOne").
-// ============================================================
-
 public class MainMenuController : MonoBehaviour
 {
     [Header("Scene")]
@@ -29,50 +13,67 @@ public class MainMenuController : MonoBehaviour
 
     [Header("Title")]
     public string gameTitle    = "CORE: LAST CHARGE";
-    public string gameSubtitle = "SEASON I  ·  SELECT PLAYERS";
+    public string gameSubtitle = "SEASON I";
 
-    [Header("Colours — tweak to reskin everything")]
-    public Color colBgDeep      = new Color(0.02f, 0.03f, 0.10f, 1f);
-    public Color colAccentA     = new Color(0.00f, 0.88f, 1.00f, 1f);   // electric cyan
-    public Color colAccentB     = new Color(0.55f, 0.10f, 1.00f, 1f);   // deep violet
-    public Color colAccentC     = new Color(1.00f, 0.38f, 0.08f, 1f);   // ember orange
+    [Header("Font")]
+    public TMP_FontAsset audiowideFont;
+
+    // ✨ NEW: Background Runners - drag your prefabs here
+    [Header("Background Runners")]
+    [Tooltip("Leave empty to use built in placeholder runners")]
+    public Transform player1;
+    public Transform player2;
+    public Transform player3;
+    public Transform player4;
+    public Transform energyBall;
+    public float runSpeed = 14f;
+    public float runYPosition = 0f;
+
+    [Header("Colours")]
+    public Color colBg          = new Color(0.05f, 0.06f, 0.12f, 1f);
+    public Color colAccentA     = new Color(0.00f, 0.88f, 1.00f, 1f);
+    public Color colAccentB     = new Color(0.55f, 0.10f, 1.00f, 1f);
+    public Color colAccentC     = new Color(1.00f, 0.38f, 0.08f, 1f);
     public Color colTitleTop    = new Color(1.00f, 1.00f, 1.00f, 1f);
     public Color colTitleBot    = new Color(0.55f, 0.88f, 1.00f, 1f);
-    public Color colButtonFace  = new Color(0.04f, 0.11f, 0.26f, 0.94f);
+    public Color colButtonFace  = new Color(0.04f, 0.11f, 0.26f, 0.95f);
     public Color colButtonBorder= new Color(0.00f, 0.88f, 1.00f, 0.70f);
     public Color colButtonText  = new Color(1.00f, 1.00f, 1.00f, 1.00f);
 
-    [Header("Audio (optional — leave empty if none)")]
+    [Header("Audio")]
     public AudioClip sfxHover;
     public AudioClip sfxClick;
     public AudioSource musicSource;
 
-    // ── Runtime refs ─────────────────────────────────────────
+    static readonly Color[] PlayerColors = {
+        new Color(1.00f, 0.22f, 0.22f, 1f),
+        new Color(0.35f, 0.65f, 1.00f, 1f),
+        new Color(0.15f, 0.90f, 0.75f, 1f),
+        new Color(1.00f, 0.88f, 0.15f, 1f),
+    };
+
     private Canvas          _canvas;
     private AudioSource     _sfx;
     private bool            _transitioning;
 
-    private TextMeshProUGUI  _titleTMP;
-    private TextMeshProUGUI  _subtitleTMP;
-    private Image            _flashOverlay;
-    private RectTransform    _titleContainer;
-    private CanvasGroup      _titleCG;
-    private Image            _scanlines;
-    private List<Image>      _glowRings  = new List<Image>();
-    private struct BtnData { public RectTransform rt; public CanvasGroup cg; public Image face; public Image border; public Image acc; public TextMeshProUGUI lbl; public int playerCount; public Button btn; }
-    private List<BtnData> _btnRoots = new List<BtnData>();
+    // Panels
+    private CanvasGroup     _mainPanel;
+    private CanvasGroup     _playerSelectPanel;
+    private CanvasGroup     _howToPlayPanel;
+    private CanvasGroup     _creditsPanel;
 
-    // Gamepad navigation state
-    private int _selectedIndex = -1;
-    private float _navCooldown = 0.18f;
-    private float _navTimer = 0f;
+    // Title refs
+    private TextMeshProUGUI _titleTMP;
+    private TextMeshProUGUI _subtitleTMP;
+    private Image           _flashOverlay;
+    private RectTransform   _titleContainer;
+    private CanvasGroup     _titleCG;
 
-    private struct StarData   { public RectTransform rt; public Image img; public float speed; public float phase; public float baseA; }
-    private struct NebulaData { public RectTransform rt; public Image img; public Vector2 dir; public float spd; public float phase; public float baseA; }
-    private List<StarData>   _stars   = new List<StarData>();
-    private List<NebulaData> _nebulas = new List<NebulaData>();
+    // BG player data
+    private Transform[]     _bgPlayers = new Transform[4];
+    private int             _ballCarrier = 0;
+    private bool            _runningRight = true;
 
-    // ────────────────────────────────────────────────────────
     void Awake()
     {
         _sfx = gameObject.AddComponent<AudioSource>();
@@ -82,84 +83,52 @@ public class MainMenuController : MonoBehaviour
     void Start()
     {
         BuildAll();
-        // default select first button if available
-        if (_btnRoots.Count > 0) SetSelectedIndex(0, notifyEventSystem: false);
         StartCoroutine(IntroSequence());
-        StartCoroutine(LoopBackground());
-        StartCoroutine(LoopTitle());
-        StartCoroutine(LoopRings());
-        StartCoroutine(TypewriterRoutine());
+        StartCoroutine(LoopBGPlayers());
     }
 
-    void Update()
-    {
-        TickStars();
-        HandleGamepad();
-    }
-
-    void HandleGamepad()
-    {
-        if (_btnRoots.Count == 0) return;
-
-        if (_navTimer > 0f) _navTimer -= Time.unscaledDeltaTime;
-
-        float v = Input.GetAxisRaw("Vertical");
-        if (Mathf.Abs(v) > 0.5f && _navTimer <= 0f)
-        {
-            int dir = v > 0f ? -1 : 1; // up is negative index
-            int next = Mathf.Clamp(_selectedIndex + dir, 0, _btnRoots.Count - 1);
-            if (next != _selectedIndex) SetSelectedIndex(next);
-            _navTimer = _navCooldown;
-        }
-
-        if (Input.GetButtonDown("Submit") || Input.GetButtonDown("Fire1"))
-        {
-            if (_selectedIndex >= 0 && _selectedIndex < _btnRoots.Count)
-            {
-                var d = _btnRoots[_selectedIndex];
-                OnClick(d.playerCount, d.rt, d.face, d.border);
-            }
-        }
-    }
-
-    void SetSelectedIndex(int idx, bool notifyEventSystem = true)
-    {
-        if (idx == _selectedIndex) return;
-        if (_selectedIndex >= 0 && _selectedIndex < _btnRoots.Count)
-        {
-            var prev = _btnRoots[_selectedIndex];
-            StartCoroutine(HoverAnim(prev.rt, prev.face, prev.border, prev.acc, prev.lbl, false));
-        }
-        _selectedIndex = idx;
-        if (_selectedIndex >= 0 && _selectedIndex < _btnRoots.Count)
-        {
-            var cur = _btnRoots[_selectedIndex];
-            StartCoroutine(HoverAnim(cur.rt, cur.face, cur.border, cur.acc, cur.lbl, true));
-            if (notifyEventSystem && EventSystem.current)
-            {
-                EventSystem.current.SetSelectedGameObject(cur.rt.gameObject);
-            }
-        }
-    }
-
-    // ────────────────────────────────────────────────────────
     #region BUILD
-    // ────────────────────────────────────────────────────────
-
     void BuildAll()
     {
         _canvas = MakeCanvas();
-        LayerBG();
-        LayerNebulas();
-        LayerStars();
-        LayerGrid();
-        LayerScanlines();
-        LayerVignette();
-        LayerRings();
-        LayerTitle();
-        LayerButtons();
-        LayerFlash();
-        HideForIntro();
+
+        //var bg = Img("BG", _canvas.transform, colBg);
+        //Stretch(bg.rectTransform);
+
+        // ✅ Auto detect if you assigned your players or if we should use placeholders
+        if (player1 == null || player2 == null || player3 == null || player4 == null)
+        {
+            BuildPlaceholderBGPlayers();
+        }
+        else
+        {
+            _bgPlayers[0] = player1;
+            _bgPlayers[1] = player2;
+            _bgPlayers[2] = player3;
+            _bgPlayers[3] = player4;
+        }
+
+        //var grad = Img("BottomGrad", _canvas.transform, new Color(0f, 0f, 0f, 0.5f));
+        //grad.rectTransform.anchorMin = Vector2.zero;
+        //grad.rectTransform.anchorMax = new Vector2(1f, 0.25f);
+        //grad.rectTransform.offsetMin = grad.rectTransform.offsetMax = Vector2.zero;
+        //grad.raycastTarget = false;
+
+        BuildTitle();
+
+        _mainPanel         = BuildMainPanel();
+        _playerSelectPanel = BuildPlayerSelectPanel();
+        _howToPlayPanel    = BuildHowToPlayPanel();
+        _creditsPanel      = BuildCreditsPanel();
+
+        _flashOverlay = Img("Flash", _canvas.transform, new Color(colAccentA.r, colAccentA.g, colAccentA.b, 0f));
+        Stretch(_flashOverlay.rectTransform);
+        _flashOverlay.raycastTarget = false;
+
+        SetPanelVisible(_mainPanel,         true,  instant: true);
+        SetPanelVisible(_playerSelectPanel, false, instant: true);
+        SetPanelVisible(_howToPlayPanel,    false, instant: true);
+        SetPanelVisible(_creditsPanel,      false, instant: true);
     }
 
     Canvas MakeCanvas()
@@ -167,12 +136,12 @@ public class MainMenuController : MonoBehaviour
         var go = new GameObject("MenuCanvas");
         go.transform.SetParent(transform, false);
         var c  = go.AddComponent<Canvas>();
-        c.renderMode  = RenderMode.ScreenSpaceOverlay;
+        c.renderMode   = RenderMode.ScreenSpaceOverlay;
         c.sortingOrder = 99;
         var cs = go.AddComponent<CanvasScaler>();
-        cs.uiScaleMode           = CanvasScaler.ScaleMode.ScaleWithScreenSize;
-        cs.referenceResolution   = new Vector2(1920, 1080);
-        cs.matchWidthOrHeight    = 0.5f;
+        cs.uiScaleMode         = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+        cs.referenceResolution = new Vector2(1920, 1080);
+        cs.matchWidthOrHeight  = 0.5f;
         go.AddComponent<GraphicRaycaster>();
         if (!FindAnyObjectByType<EventSystem>())
         {
@@ -183,621 +152,594 @@ public class MainMenuController : MonoBehaviour
         return c;
     }
 
-    void LayerBG()
+    void BuildTitle()
     {
-        // Near-black deep space base
-        var bg = Img("BG", _canvas.transform, colBgDeep);
-        Stretch(bg.rectTransform);
-
-        // Subtle blue centre-glow
-        var glow = Img("BGGlow", _canvas.transform, new Color(0.04f, 0.10f, 0.28f, 0.55f));
-        Stretch(glow.rectTransform);
-    }
-
-    void LayerNebulas()
-    {
-        var defs = new[]
-        {
-            (col:new Color(colAccentB.r,colAccentB.g,colAccentB.b,0.13f), w:950f, h:700f, x:-320f, y: 220f, dx: 0.30f, dy: 0.14f, spd: 9f),
-            (col:new Color(colAccentA.r,colAccentA.g,colAccentA.b,0.07f), w:800f, h:600f, x: 380f, y:-180f, dx:-0.22f, dy: 0.28f, spd:11f),
-            (col:new Color(colAccentC.r,colAccentC.g,colAccentC.b,0.06f), w:600f, h:500f, x:-120f, y:-320f, dx: 0.18f, dy:-0.22f, spd:13f),
-            (col:new Color(colAccentB.r,colAccentB.g,colAccentB.b,0.07f), w:500f, h:400f, x: 520f, y: 310f, dx:-0.28f, dy: 0.12f, spd:10f),
-        };
-        foreach (var d in defs)
-        {
-            var img = Img("Neb", _canvas.transform, d.col);
-            img.rectTransform.anchorMin = img.rectTransform.anchorMax = img.rectTransform.pivot = Vector2.one * 0.5f;
-            img.rectTransform.sizeDelta = new Vector2(d.w, d.h);
-            img.rectTransform.anchoredPosition = new Vector2(d.x, d.y);
-            _nebulas.Add(new NebulaData { rt=img.rectTransform, img=img, dir=new Vector2(d.dx,d.dy).normalized, spd=d.spd, phase=Random.value*Mathf.PI*2f, baseA=d.col.a });
-        }
-    }
-
-    void LayerStars()
-    {
-        var parent = Rect("Stars", _canvas.transform);
-        Stretch(parent);
-        for (int i = 0; i < 300; i++)
-        {
-            float sz  = Random.value < 0.08f ? Random.Range(2.5f,4.5f) : Random.Range(0.7f,2.2f);
-            float alp = Random.Range(0.25f,0.95f);
-            var img = Img("S", parent, new Color(1f, 1f, Random.Range(0.88f,1f), alp));
-            img.rectTransform.sizeDelta = Vector2.one * sz;
-            img.rectTransform.anchorMin = img.rectTransform.anchorMax = new Vector2(Random.value, Random.value);
-            img.rectTransform.anchoredPosition = Vector2.zero;
-            _stars.Add(new StarData { rt=img.rectTransform, img=img, speed=Random.Range(0.4f,1.5f), phase=Random.value*Mathf.PI*2f, baseA=alp });
-        }
-    }
-
-    void LayerGrid()
-    {
-        var p = Rect("Grid", _canvas.transform);
-        Stretch(p);
-        Color lc = new Color(colAccentA.r, colAccentA.g, colAccentA.b, 0.028f);
-        for (int i = 0; i < 11; i++)
-        {
-            var l = Img("H", p, lc);
-            l.rectTransform.anchorMin = new Vector2(0f,0f);
-            l.rectTransform.anchorMax = new Vector2(1f,0f);
-            l.rectTransform.sizeDelta = new Vector2(0f,1f);
-            l.rectTransform.anchoredPosition = new Vector2(0f, i * 100f);
-            l.raycastTarget = false;
-        }
-        for (int i = 0; i < 9; i++)
-        {
-            var l = Img("V", p, lc);
-            l.rectTransform.anchorMin = new Vector2(0f,0f);
-            l.rectTransform.anchorMax = new Vector2(0f,1f);
-            l.rectTransform.sizeDelta = new Vector2(1f,0f);
-            l.rectTransform.anchoredPosition = new Vector2(i * 220f, 0f);
-            l.raycastTarget = false;
-        }
-    }
-
-    void LayerScanlines()
-    {
-        _scanlines = Img("Scan", _canvas.transform, new Color(0f,0f,0f,0.04f));
-        Stretch(_scanlines.rectTransform);
-        _scanlines.raycastTarget = false;
-    }
-
-    void LayerVignette()
-    {
-        var v = Img("Vign", _canvas.transform, new Color(0f,0f,0f,0.5f));
-        Stretch(v.rectTransform);
-        v.raycastTarget = false;
-    }
-
-    void LayerRings()
-    {
-        _titleContainer = Rect("TitleArea", _canvas.transform);
-        _titleContainer.anchorMin = _titleContainer.anchorMax = _titleContainer.pivot = Vector2.one * 0.5f;
-        _titleContainer.sizeDelta = new Vector2(920f, 300f);
-        _titleContainer.anchoredPosition = new Vector2(0f, 130f);
+        _titleContainer = MakeRect("TitleArea", _canvas.transform);
+        _titleContainer.anchorMin = new Vector2(0f, 1f);
+        _titleContainer.anchorMax = new Vector2(1f, 1f);
+        _titleContainer.pivot     = new Vector2(0.5f, 1f);
+        _titleContainer.sizeDelta = new Vector2(0f, 180f);
+        _titleContainer.anchoredPosition = Vector2.zero;
         _titleCG = _titleContainer.gameObject.AddComponent<CanvasGroup>();
 
-        float[] sz  = {530f, 430f, 330f};
-        float[] fa  = {0.72f, 0.60f, 0.48f};
-        Color[] rc  = {
-            new Color(colAccentA.r,colAccentA.g,colAccentA.b,0.19f),
-            new Color(colAccentB.r,colAccentB.g,colAccentB.b,0.14f),
-            new Color(colAccentA.r,colAccentA.g,colAccentA.b,0.10f),
-        };
-        for (int i = 0; i < 3; i++)
-        {
-            var r = Img("Ring"+i, _titleContainer, rc[i]);
-            r.rectTransform.anchorMin = r.rectTransform.anchorMax = r.rectTransform.pivot = Vector2.one*0.5f;
-            r.rectTransform.sizeDelta = Vector2.one * sz[i];
-            r.rectTransform.anchoredPosition = Vector2.zero;
-            r.type       = Image.Type.Filled;
-            r.fillMethod = Image.FillMethod.Radial360;
-            r.fillAmount = fa[i];
-            r.raycastTarget = false;
-            _glowRings.Add(r);
-        }
-    }
-
-    void LayerTitle()
-    {
-        // Drop shadow
-        var sh = TMP("Shadow", _titleContainer, gameTitle);
-        sh.fontSize   = 92f;
-        sh.fontStyle  = FontStyles.Bold | FontStyles.UpperCase;
-        sh.alignment  = TextAlignmentOptions.Center;
-        sh.color      = new Color(0f, 0.45f, 0.85f, 0.32f);
-        sh.rectTransform.anchorMin = sh.rectTransform.anchorMax = sh.rectTransform.pivot = Vector2.one*0.5f;
-        sh.rectTransform.sizeDelta = new Vector2(920f, 200f);
-        sh.rectTransform.anchoredPosition = new Vector2(5f, -7f);
-        sh.raycastTarget = false;
-
-        // Main title
-        _titleTMP = TMP("Title", _titleContainer, gameTitle);
-        _titleTMP.fontSize  = 92f;
-        _titleTMP.fontStyle = FontStyles.Bold | FontStyles.UpperCase;
-        _titleTMP.alignment = TextAlignmentOptions.Center;
-        _titleTMP.color     = colTitleTop;
+        _titleTMP = MakeTMP("Title", _titleContainer, gameTitle);
+        ApplyFont(_titleTMP);
+        _titleTMP.fontSize   = 82f;
+        _titleTMP.fontStyle  = FontStyles.Bold | FontStyles.UpperCase;
+        _titleTMP.alignment  = TextAlignmentOptions.Center;
+        _titleTMP.color      = colTitleTop;
         _titleTMP.enableVertexGradient = true;
         _titleTMP.colorGradient = new VertexGradient(colTitleTop, colTitleTop, colTitleBot, colTitleBot);
-        _titleTMP.rectTransform.anchorMin = _titleTMP.rectTransform.anchorMax = _titleTMP.rectTransform.pivot = Vector2.one*0.5f;
-        _titleTMP.rectTransform.sizeDelta = new Vector2(920f, 200f);
-        _titleTMP.rectTransform.anchoredPosition = Vector2.zero;
+        _titleTMP.rectTransform.anchorMin = Vector2.zero;
+        _titleTMP.rectTransform.anchorMax = Vector2.one;
+        _titleTMP.rectTransform.offsetMin = new Vector2(0f, 40f);
+        _titleTMP.rectTransform.offsetMax = Vector2.zero;
         _titleTMP.raycastTarget = false;
 
-        // Accent line
-        var line = Img("Line", _titleContainer, new Color(colAccentA.r, colAccentA.g, colAccentA.b, 0.55f));
-        line.rectTransform.anchorMin = line.rectTransform.anchorMax = line.rectTransform.pivot = Vector2.one*0.5f;
-        line.rectTransform.sizeDelta = new Vector2(640f, 1.5f);
-        line.rectTransform.anchoredPosition = new Vector2(0f, -98f);
+        var line = Img("Line", _titleContainer, new Color(colAccentA.r, colAccentA.g, colAccentA.b, 0.6f));
+        line.rectTransform.anchorMin = new Vector2(0.2f, 0f);
+        line.rectTransform.anchorMax = new Vector2(0.8f, 0f);
+        line.rectTransform.sizeDelta = new Vector2(0f, 2f);
+        line.rectTransform.anchoredPosition = new Vector2(0f, 28f);
         line.raycastTarget = false;
 
-        // Subtitle
-        _subtitleTMP = TMP("Sub", _titleContainer, "");
-        _subtitleTMP.fontSize  = 17f;
+        _subtitleTMP = MakeTMP("Sub", _titleContainer, "");
+        ApplyFont(_subtitleTMP);
+        _subtitleTMP.fontSize  = 15f;
         _subtitleTMP.alignment = TextAlignmentOptions.Center;
-        _subtitleTMP.color     = new Color(colAccentA.r, colAccentA.g, colAccentA.b, 0.72f);
-        _subtitleTMP.characterSpacing = 7f;
-        _subtitleTMP.rectTransform.anchorMin = _subtitleTMP.rectTransform.anchorMax = _subtitleTMP.rectTransform.pivot = Vector2.one*0.5f;
-        _subtitleTMP.rectTransform.sizeDelta = new Vector2(920f, 40f);
-        _subtitleTMP.rectTransform.anchoredPosition = new Vector2(0f, -122f);
+        _subtitleTMP.color     = new Color(colAccentA.r, colAccentA.g, colAccentA.b, 0.75f);
+        _subtitleTMP.characterSpacing = 8f;
+        _subtitleTMP.rectTransform.anchorMin = new Vector2(0f, 0f);
+        _subtitleTMP.rectTransform.anchorMax = new Vector2(1f, 0f);
+        _subtitleTMP.rectTransform.sizeDelta = new Vector2(0f, 30f);
+        _subtitleTMP.rectTransform.anchoredPosition = new Vector2(0f, 10f);
         _subtitleTMP.raycastTarget = false;
-
-        // Corner brackets
-        MakeBrackets(_titleContainer, 430f, 90f);
     }
 
-    void MakeBrackets(RectTransform p, float halfW, float halfH)
+    CanvasGroup BuildMainPanel()
     {
-        Color bc = new Color(colAccentA.r, colAccentA.g, colAccentA.b, 0.45f);
-        float bsz = 26f, th = 1.8f;
-        var corners = new[]{ new Vector2(-halfW,halfH), new Vector2(halfW,halfH), new Vector2(-halfW,-halfH), new Vector2(halfW,-halfH) };
-        float[] hf  = {1f,-1f, 1f,-1f};
-        float[] vf  = {1f, 1f,-1f,-1f};
-        for (int i = 0; i < 4; i++)
-        {
-            var h = Img("Bh"+i, p, bc);
-            h.rectTransform.anchorMin = h.rectTransform.anchorMax = h.rectTransform.pivot = Vector2.one*0.5f;
-            h.rectTransform.sizeDelta = new Vector2(bsz, th);
-            h.rectTransform.anchoredPosition = corners[i] + new Vector2(hf[i]*(bsz/2f-th/2f), 0f);
-            h.raycastTarget = false;
-            var v = Img("Bv"+i, p, bc);
-            v.rectTransform.anchorMin = v.rectTransform.anchorMax = v.rectTransform.pivot = Vector2.one*0.5f;
-            v.rectTransform.sizeDelta = new Vector2(th, bsz);
-            v.rectTransform.anchoredPosition = corners[i] + new Vector2(0f, vf[i]*(bsz/2f-th/2f));
-            v.raycastTarget = false;
-        }
+        var panel = MakePanel("MainPanel");
+
+        float startY = -80f;
+        float spacing = 80f;
+
+        MakeButton(panel, "START",      startY + spacing * 0,  colAccentA, () => ShowPlayerSelect());
+        MakeButton(panel, "HOW TO PLAY",startY + spacing * -1, colAccentA, () => ShowPanel(_howToPlayPanel));
+        MakeButton(panel, "CREDITS",    startY + spacing * -2, colAccentA, () => ShowPanel(_creditsPanel));
+        MakeButton(panel, "QUIT",       startY + spacing * -3, new Color(1f, 0.35f, 0.35f, 0.8f), QuitGame);
+
+        return panel.GetComponent<CanvasGroup>();
     }
 
-    void LayerButtons()
+    CanvasGroup BuildPlayerSelectPanel()
     {
-        var defs = new[]
-        {
-            (txt:"2  PLAYERS", badge:"DUEL",     count:2),
-            (txt:"3  PLAYERS", badge:"SKIRMISH", count:3),
-            (txt:"4  PLAYERS", badge:"CHAOS",    count:4),
+        var panel = MakePanel("PlayerSelectPanel");
+
+        var hdr = MakeTMP("Hdr", panel.transform, "SELECT PLAYERS");
+        ApplyFont(hdr);
+        hdr.fontSize  = 28f;
+        hdr.fontStyle = FontStyles.Bold;
+        hdr.alignment = TextAlignmentOptions.Center;
+        hdr.color     = new Color(colAccentA.r, colAccentA.g, colAccentA.b, 0.9f);
+        hdr.rectTransform.anchorMin = hdr.rectTransform.anchorMax = new Vector2(0.5f, 0.5f);
+        hdr.rectTransform.pivot     = new Vector2(0.5f, 0.5f);
+        hdr.rectTransform.sizeDelta = new Vector2(500f, 50f);
+        hdr.rectTransform.anchoredPosition = new Vector2(0f, 80f);
+        hdr.raycastTarget = false;
+
+        float startY  = -20f;
+        float spacing = 80f;
+
+        MakeButton(panel, "2  PLAYERS", startY + spacing * 1,  colAccentA, () => LaunchGame(2));
+        MakeButton(panel, "3  PLAYERS", startY + spacing * 0,  colAccentA, () => LaunchGame(3));
+        MakeButton(panel, "4  PLAYERS", startY + spacing * -1, colAccentA, () => LaunchGame(4));
+
+        MakeButton(panel, "← BACK", startY + spacing * -2.5f, new Color(0.5f, 0.5f, 0.5f, 0.6f), () => ShowPanel(_mainPanel));
+
+        return panel.GetComponent<CanvasGroup>();
+    }
+
+    CanvasGroup BuildHowToPlayPanel()
+    {
+        var panel = MakePanel("HowToPlayPanel");
+
+        var title = MakeTMP("Title", panel.transform, "HOW TO PLAY");
+        ApplyFont(title);
+        title.fontSize  = 32f;
+        title.fontStyle = FontStyles.Bold;
+        title.alignment = TextAlignmentOptions.Center;
+        title.color     = colAccentA;
+        title.rectTransform.anchorMin = title.rectTransform.anchorMax = new Vector2(0.5f, 0.5f);
+        title.rectTransform.pivot     = new Vector2(0.5f, 0.5f);
+        title.rectTransform.sizeDelta = new Vector2(700f, 50f);
+        title.rectTransform.anchoredPosition = new Vector2(0f, 160f);
+        title.raycastTarget = false;
+
+        string[] lines = {
+            "GRAB THE ENERGY BALL AND HOLD IT TO SCORE",
+            "TACKLE OTHER PLAYERS TO STEAL THE BALL",
+            "AVOID THE TRAPS ON THE ARENA FLOOR",
+            "LAST PLAYER STANDING WINS",
         };
 
-        var container = Rect("Btns", _canvas.transform);
-        container.anchorMin = container.anchorMax = container.pivot = Vector2.one*0.5f;
-        container.sizeDelta = new Vector2(500f, 250f);
-        container.anchoredPosition = new Vector2(0f, -210f);
+        Color[] lineColors = {
+            new Color(colAccentA.r, colAccentA.g, colAccentA.b, 0.9f),
+            new Color(1f, 0.88f, 0.15f, 0.9f),
+            new Color(1f, 0.35f, 0.35f, 0.9f),
+            new Color(0.15f, 0.90f, 0.75f, 0.9f),
+        };
 
-        for (int i = 0; i < defs.Length; i++)
+        for (int i = 0; i < lines.Length; i++)
         {
-            int cap = defs[i].count;
-            float y = 88f - i * 88f;
-
-            // Root
-            var root = Rect("BRoot"+i, container);
-            root.anchorMin = root.anchorMax = root.pivot = new Vector2(0.5f,0.5f);
-            root.sizeDelta = new Vector2(480f, 68f);
-            root.anchoredPosition = new Vector2(-80f, y);  // will slide in
-            var cg = root.gameObject.AddComponent<CanvasGroup>();
-            cg.alpha = 0f; cg.interactable = false; cg.blocksRaycasts = false;
-
-            // Border
-            var border = Img("Bo", root, colButtonBorder);
-            Stretch(border.rectTransform); border.raycastTarget = false;
-
-            // Face
-            var face = Img("Fa", root, colButtonFace);
-            face.rectTransform.anchorMin = Vector2.zero;
-            face.rectTransform.anchorMax = Vector2.one;
-            face.rectTransform.offsetMin = new Vector2(2f,2f);
-            face.rectTransform.offsetMax = new Vector2(-2f,-2f);
-            face.raycastTarget = false;
-
-            // Left accent
-            var acc = Img("Ac", root, colAccentA);
-            acc.rectTransform.anchorMin = new Vector2(0f,0.5f);
-            acc.rectTransform.anchorMax = new Vector2(0f,0.5f);
-            acc.rectTransform.pivot     = new Vector2(0f,0.5f);
-            acc.rectTransform.sizeDelta = new Vector2(4f,36f);
-            acc.rectTransform.anchoredPosition = new Vector2(2f,0f);
-            acc.raycastTarget = false;
-
-            // Label
-            var lbl = TMP("Lbl", root, defs[i].txt);
-            lbl.fontSize  = 26f;
-            lbl.fontStyle = FontStyles.Bold;
-            lbl.alignment = TextAlignmentOptions.MidlineLeft;
-            lbl.color     = colButtonText;
-            lbl.characterSpacing = 4f;
-            lbl.rectTransform.anchorMin = Vector2.zero;
-            lbl.rectTransform.anchorMax = Vector2.one;
-            lbl.rectTransform.offsetMin = new Vector2(24f, 0f);
-            lbl.rectTransform.offsetMax = new Vector2(-100f, 0f);
-            lbl.raycastTarget = false;
-
-            // Badge bg
-            var bbg = Img("BBg", root, new Color(colAccentA.r,colAccentA.g,colAccentA.b,0.14f));
-            bbg.rectTransform.anchorMin = bbg.rectTransform.anchorMax = new Vector2(1f,0.5f);
-            bbg.rectTransform.pivot     = new Vector2(1f,0.5f);
-            bbg.rectTransform.sizeDelta = new Vector2(98f,32f);
-            bbg.rectTransform.anchoredPosition = new Vector2(-12f,0f);
-            bbg.raycastTarget = false;
-
-            // Badge label
-            var btxt = TMP("BTxt", bbg.rectTransform, defs[i].badge);
-            btxt.fontSize  = 12f;
-            btxt.fontStyle = FontStyles.Bold;
-            btxt.alignment = TextAlignmentOptions.Center;
-            btxt.color     = new Color(colAccentA.r,colAccentA.g,colAccentA.b,0.88f);
-            btxt.characterSpacing = 3f;
-            btxt.rectTransform.anchorMin = Vector2.zero;
-            btxt.rectTransform.anchorMax = Vector2.one;
-            btxt.rectTransform.offsetMin = btxt.rectTransform.offsetMax = Vector2.zero;
-            btxt.raycastTarget = false;
-
-            // Invisible hit area
-            var hit = Img("Hit", root, Color.clear);
-            Stretch(hit.rectTransform);
-            hit.raycastTarget = true;
-            var btn = root.gameObject.AddComponent<Button>();
-            btn.targetGraphic = hit;
-            btn.transition    = Selectable.Transition.None;
-            int c2 = cap;
-            btn.onClick.AddListener(() => OnClick(c2, root, face, border));
-
-            // Hover
-            var et = root.gameObject.AddComponent<EventTrigger>();
-            AddTrigger(et, EventTriggerType.PointerEnter, _ => { PlaySfx(sfxHover, 0.3f); StartCoroutine(HoverAnim(root, face, border, acc, lbl, true)); });
-            AddTrigger(et, EventTriggerType.PointerExit,  _ => StartCoroutine(HoverAnim(root, face, border, acc, lbl, false)));
-
-            _btnRoots.Add(new BtnData { rt = root, cg = cg, face = face, border = border, acc = acc, lbl = lbl, playerCount = cap, btn = btn });
+            var line = MakeTMP("Line"+i, panel.transform, lines[i]);
+            ApplyFont(line);
+            line.fontSize  = 18f;
+            line.alignment = TextAlignmentOptions.Center;
+            line.color     = lineColors[i];
+            line.rectTransform.anchorMin = line.rectTransform.anchorMax = new Vector2(0.5f, 0.5f);
+            line.rectTransform.pivot     = new Vector2(0.5f, 0.5f);
+            line.rectTransform.sizeDelta = new Vector2(800f, 40f);
+            line.rectTransform.anchoredPosition = new Vector2(0f, 80f - i * 55f);
+            line.raycastTarget = false;
         }
+
+        MakeButton(panel, "← BACK", -220f, new Color(0.5f, 0.5f, 0.5f, 0.6f), () => ShowPanel(_mainPanel));
+
+        return panel.GetComponent<CanvasGroup>();
     }
 
-    void LayerFlash()
+    CanvasGroup BuildCreditsPanel()
     {
-        _flashOverlay = Img("Flash", _canvas.transform, new Color(colAccentA.r,colAccentA.g,colAccentA.b,0f));
-        Stretch(_flashOverlay.rectTransform);
-        _flashOverlay.raycastTarget = false;
+        var panel = MakePanel("CreditsPanel");
+
+        var title = MakeTMP("Title", panel.transform, "CREDITS");
+        ApplyFont(title);
+        title.fontSize  = 32f;
+        title.fontStyle = FontStyles.Bold;
+        title.alignment = TextAlignmentOptions.Center;
+        title.color     = colAccentA;
+        title.rectTransform.anchorMin = title.rectTransform.anchorMax = new Vector2(0.5f, 0.5f);
+        title.rectTransform.pivot     = new Vector2(0.5f, 0.5f);
+        title.rectTransform.sizeDelta = new Vector2(600f, 50f);
+        title.rectTransform.anchoredPosition = new Vector2(0f, 160f);
+        title.raycastTarget = false;
+
+        string[] credits = {
+            "GAME DESIGN",
+            "YOUR NAME HERE",
+            "",
+            "PROGRAMMING",
+            "YOUR NAME HERE",
+            "",
+            "ART & VISUALS",
+            "YOUR NAME HERE",
+        };
+
+        for (int i = 0; i < credits.Length; i++)
+        {
+            bool isHeader = (i % 3 == 0 && credits[i] != "");
+            var line = MakeTMP("Credit"+i, panel.transform, credits[i]);
+            ApplyFont(line);
+            line.fontSize  = isHeader ? 13f : 20f;
+            line.fontStyle = isHeader ? FontStyles.Normal : FontStyles.Bold;
+            line.alignment = TextAlignmentOptions.Center;
+            line.color     = isHeader
+                ? new Color(colAccentA.r, colAccentA.g, colAccentA.b, 0.6f)
+                : new Color(1f, 1f, 1f, 0.9f);
+            line.characterSpacing = isHeader ? 5f : 0f;
+            line.rectTransform.anchorMin = line.rectTransform.anchorMax = new Vector2(0.5f, 0.5f);
+            line.rectTransform.pivot     = new Vector2(0.5f, 0.5f);
+            line.rectTransform.sizeDelta = new Vector2(600f, 35f);
+            line.rectTransform.anchoredPosition = new Vector2(0f, 80f - i * 38f);
+            line.raycastTarget = false;
+        }
+
+        MakeButton(panel, "← BACK", -220f, new Color(0.5f, 0.5f, 0.5f, 0.6f), () => ShowPanel(_mainPanel));
+
+        return panel.GetComponent<CanvasGroup>();
     }
 
-    void HideForIntro()
+    GameObject MakePanel(string name)
     {
-        if (_titleCG) _titleCG.alpha = 0f;
-        _titleContainer.localScale = Vector3.one * 0.85f;
-        foreach (var d in _btnRoots) { d.cg.alpha = 0f; }
+        var go = new GameObject(name);
+        go.transform.SetParent(_canvas.transform, false);
+        var rt = go.AddComponent<RectTransform>();
+        rt.anchorMin = rt.anchorMax = rt.pivot = new Vector2(0.5f, 0.5f);
+        rt.sizeDelta = new Vector2(600f, 600f);
+        rt.anchoredPosition = new Vector2(0f, -60f);
+        var cg = go.AddComponent<CanvasGroup>();
+        cg.alpha = 0f;
+        return go;
+    }
+
+    void MakeButton(GameObject panel, string label, float yPos, Color accentColor, System.Action onClick)
+    {
+        var root = new GameObject("Btn_" + label);
+        root.transform.SetParent(panel.transform, false);
+        var rt = root.AddComponent<RectTransform>();
+        rt.anchorMin = rt.anchorMax = rt.pivot = new Vector2(0.5f, 0.5f);
+        rt.sizeDelta = new Vector2(420f, 62f);
+        rt.anchoredPosition = new Vector2(0f, yPos);
+
+        var border = Img("Border", root.transform, accentColor);
+        Stretch(border.rectTransform);
+        border.raycastTarget = false;
+
+        var face = Img("Face", root.transform, colButtonFace);
+        face.rectTransform.anchorMin = Vector2.zero;
+        face.rectTransform.anchorMax = Vector2.one;
+        face.rectTransform.offsetMin = new Vector2(2f, 2f);
+        face.rectTransform.offsetMax = new Vector2(-2f, -2f);
+        face.raycastTarget = false;
+
+        var acc = Img("Acc", root.transform, accentColor);
+        acc.rectTransform.anchorMin = new Vector2(0f, 0.5f);
+        acc.rectTransform.anchorMax = new Vector2(0f, 0.5f);
+        acc.rectTransform.pivot     = new Vector2(0f, 0.5f);
+        acc.rectTransform.sizeDelta = new Vector2(4f, 32f);
+        acc.rectTransform.anchoredPosition = new Vector2(2f, 0f);
+        acc.raycastTarget = false;
+
+        var lbl = MakeTMP("Label", root.transform, label);
+        ApplyFont(lbl);
+        lbl.fontSize  = 22f;
+        lbl.fontStyle = FontStyles.Bold;
+        lbl.alignment = TextAlignmentOptions.MidlineLeft;
+        lbl.color     = colButtonText;
+        lbl.characterSpacing = 3f;
+        lbl.rectTransform.anchorMin = Vector2.zero;
+        lbl.rectTransform.anchorMax = Vector2.one;
+        lbl.rectTransform.offsetMin = new Vector2(20f, 0f);
+        lbl.rectTransform.offsetMax = new Vector2(-20f, 0f);
+        lbl.raycastTarget = false;
+
+        var hit = Img("Hit", root.transform, Color.clear);
+        Stretch(hit.rectTransform);
+        hit.raycastTarget = true;
+
+        var btn = root.AddComponent<Button>();
+        btn.targetGraphic = hit;
+        btn.transition    = Selectable.Transition.None;
+        btn.onClick.AddListener(() =>
+        {
+            PlaySfx(sfxClick);
+            onClick?.Invoke();
+        });
+
+        var et = root.AddComponent<EventTrigger>();
+        AddTrigger(et, EventTriggerType.PointerEnter, _ =>
+        {
+            PlaySfx(sfxHover, 0.3f);
+            StartCoroutine(BtnHover(rt, face, border, lbl, accentColor, true));
+        });
+        AddTrigger(et, EventTriggerType.PointerExit, _ =>
+            StartCoroutine(BtnHover(rt, face, border, lbl, accentColor, false)));
+    }
+
+    // Built in placeholder runners
+    void BuildPlaceholderBGPlayers()
+    {
+        var parent = MakeRect("BGLayer", _canvas.transform);
+        Stretch(parent);
+
+        for (int i = 0; i < 4; i++)
+        {
+            var root = MakeRect("BGP"+i, parent);
+            root.anchorMin = root.anchorMax = root.pivot = new Vector2(0f, 0.5f);
+            root.anchoredPosition = new Vector2(-300f - i * 150f, -200f);
+            root.sizeDelta = Vector2.zero;
+
+            Color col = PlayerColors[i];
+
+            var body = Img("Body", root, new Color(col.r, col.g, col.b, 0.55f));
+            body.rectTransform.anchorMin = body.rectTransform.anchorMax = new Vector2(0.5f, 0f);
+            body.rectTransform.pivot     = new Vector2(0.5f, 0f);
+            body.rectTransform.sizeDelta = new Vector2(44f, 68f);
+            body.rectTransform.anchoredPosition = Vector2.zero;
+
+            var head = Img("Head", root, new Color(col.r, col.g, col.b, 0.55f));
+            head.rectTransform.anchorMin = head.rectTransform.anchorMax = new Vector2(0.5f, 0f);
+            head.rectTransform.pivot     = new Vector2(0.5f, 0f);
+            head.rectTransform.sizeDelta = new Vector2(34f, 34f);
+            head.rectTransform.anchoredPosition = new Vector2(0f, 72f);
+
+            _bgPlayers[i] = root.transform;
+        }
     }
 
     #endregion
 
-    // ────────────────────────────────────────────────────────
-    #region INTRO
-    // ────────────────────────────────────────────────────────
+    #region BG PLAYER LOOP
+    IEnumerator LoopBGPlayers()
+{
+    // ✅ THESE VALUES ARE PERFECT FOR YOUR CAMERA
+    float screenLeftEdge  = -22f;
+    float screenRightEdge =  22f;
+    float bobSpeed        = 9f;
 
-    IEnumerator IntroSequence()
+    ResetPositions(_runningRight, screenLeftEdge, screenRightEdge, _ballCarrier);
+
+    while (true)
     {
-        yield return new WaitForSeconds(0.25f);
+        float dir = _runningRight ? 1f : -1f;
+        bool anyOnScreen = false;
 
-        // Title fade+scale in
+        for (int i = 0; i < 4; i++)
+        {
+            if (_bgPlayers[i] == null) continue;
+
+            float newX = _bgPlayers[i].position.x + dir * runSpeed * Time.deltaTime;
+            float bob  = Mathf.Sin(Time.time * bobSpeed + i * 1.4f) * 0.25f;
+
+            _bgPlayers[i].position = new Vector3(newX, runYPosition + bob, 0);
+
+            // Players automatically face direction
+            _bgPlayers[i].localScale = new Vector3(_runningRight ? 1f : -1f, 1f, 1f);
+
+            // Check if any player is still on screen
+            if (_runningRight  && newX < screenRightEdge) anyOnScreen = true;
+            if (!_runningRight && newX > screenLeftEdge)  anyOnScreen = true;
+
+            // Ball follows carrier
+            if (i == _ballCarrier && energyBall != null)
+            {
+                energyBall.position = _bgPlayers[i].position + new Vector3(0, 2.8f, 0);
+                energyBall.position += new Vector3(0, Mathf.Sin(Time.time * 6f) * 0.4f, 0);
+            }
+        }
+
+        // All players off screen: flip direction
+        if (!anyOnScreen)
+        {
+            _runningRight  = !_runningRight;
+            _ballCarrier  = (_ballCarrier + 1) % 4;
+            ResetPositions(_runningRight, screenLeftEdge, screenRightEdge, _ballCarrier);
+
+            yield return new WaitForSeconds(0.6f);
+        }
+
+        yield return null;
+    }
+}
+
+void ResetPositions(bool goingRight, float leftEdge, float rightEdge, int ballHolder)
+{
+    for (int i = 0; i < 4; i++)
+    {
+        if (_bgPlayers[i] == null) continue;
+
+        // Ball holder runs out front, others follow behind
+        float leaderOffset = i == ballHolder ? 0f : 1f + (i < ballHolder ? i : i - 1) * 1f;
+        float stagger      = leaderOffset * -3.5f;
+
+        float startX = goingRight
+            ? leftEdge + stagger
+            : rightEdge - stagger;
+
+        // ✅ Place them on your grid level not on the floor
+        _bgPlayers[i].position = new Vector3(startX, 0.1f, 0);
+    }
+}
+    #endregion
+
+    #region PANEL NAVIGATION
+    void ShowPlayerSelect()
+    {
+        StartCoroutine(SwitchPanel(_mainPanel, _playerSelectPanel));
+    }
+
+    void ShowPanel(CanvasGroup target)
+    {
+        CanvasGroup current = null;
+        if (_mainPanel.alpha         > 0.5f) current = _mainPanel;
+        if (_playerSelectPanel.alpha > 0.5f) current = _playerSelectPanel;
+        if (_howToPlayPanel.alpha    > 0.5f) current = _howToPlayPanel;
+        if (_creditsPanel.alpha      > 0.5f) current = _creditsPanel;
+
+        if (current != null && current != target)
+            StartCoroutine(SwitchPanel(current, target));
+        else
+            StartCoroutine(FadeInPanel(target));
+    }
+
+    IEnumerator SwitchPanel(CanvasGroup from, CanvasGroup to)
+    {
+        yield return StartCoroutine(FadeOutPanel(from));
+        yield return StartCoroutine(FadeInPanel(to));
+    }
+
+    IEnumerator FadeInPanel(CanvasGroup cg)
+    {
+        cg.interactable   = false;
+        cg.blocksRaycasts = false;
         float t = 0f;
-        while (t < 0.85f)
+        while (t < 0.25f)
         {
             t += Time.deltaTime;
-            float p = OutCubic(t / 0.85f);
-            _titleCG.alpha = p;
-            _titleContainer.localScale = Vector3.Lerp(Vector3.one*0.85f, Vector3.one, p);
+            cg.alpha = Mathf.Clamp01(t / 0.25f);
             yield return null;
         }
-        _titleCG.alpha = 1f; _titleContainer.localScale = Vector3.one;
-
-        yield return new WaitForSeconds(0.1f);
-
-        // Buttons slide in
-        for (int i = 0; i < _btnRoots.Count; i++)
-        {
-            var rt = _btnRoots[i].rt;
-            var cg = _btnRoots[i].cg;
-            Vector2 target = rt.anchoredPosition + new Vector2(80f,0f);
-            StartCoroutine(SlideIn(rt, cg, rt.anchoredPosition, target, 0.45f));
-            yield return new WaitForSeconds(0.12f);
-        }
+        cg.alpha          = 1f;
+        cg.interactable   = true;
+        cg.blocksRaycasts = true;
     }
 
-    IEnumerator SlideIn(RectTransform rt, CanvasGroup cg, Vector2 from, Vector2 to, float dur)
+    IEnumerator FadeOutPanel(CanvasGroup cg)
     {
+        cg.interactable   = false;
+        cg.blocksRaycasts = false;
         float t = 0f;
-        while (t < dur)
+        while (t < 0.2f)
         {
             t += Time.deltaTime;
-            float p = OutCubic(Mathf.Clamp01(t/dur));
-            cg.alpha = p;
-            rt.anchoredPosition = Vector2.Lerp(from, to, p);
+            cg.alpha = Mathf.Clamp01(1f - t / 0.2f);
             yield return null;
         }
-        cg.alpha = 1f; rt.anchoredPosition = to;
-        cg.interactable = true; cg.blocksRaycasts = true;
+        cg.alpha = 0f;
     }
 
-    IEnumerator TypewriterRoutine()
+    void SetPanelVisible(CanvasGroup cg, bool visible, bool instant = false)
     {
-        yield return new WaitForSeconds(1.05f);
-        _subtitleTMP.text = "";
-        foreach (char c in gameSubtitle)
-        {
-            _subtitleTMP.text += c;
-            yield return new WaitForSeconds(0.038f);
-        }
+        cg.alpha          = visible ? 1f : 0f;
+        cg.interactable   = visible;
+        cg.blocksRaycasts = visible;
     }
 
     #endregion
 
-    // ────────────────────────────────────────────────────────
-    #region AMBIENT LOOPS
-    // ────────────────────────────────────────────────────────
-
-    IEnumerator LoopBackground()
-    {
-        while (true)
-        {
-            float t = Time.time;
-            for (int i = 0; i < _nebulas.Count; i++)
-            {
-                var n = _nebulas[i];
-                n.rt.anchoredPosition += n.dir * n.spd * Time.deltaTime;
-                var p = n.rt.anchoredPosition;
-                if (Mathf.Abs(p.x) > 680f) n.dir.x *= -1f;
-                if (Mathf.Abs(p.y) > 480f) n.dir.y *= -1f;
-                _nebulas[i] = n;
-                var c = n.img.color;
-                c.a = n.baseA * (0.55f + 0.45f * Mathf.Sin(t*0.38f + n.phase));
-                n.img.color = c;
-            }
-            if (_scanlines)
-            {
-                var sc = _scanlines.color;
-                sc.a = 0.022f + 0.014f * Mathf.Sin(t*6.8f);
-                _scanlines.color = sc;
-            }
-            yield return null;
-        }
-    }
-
-    void TickStars()
-    {
-        float t = Time.time;
-        foreach (var s in _stars)
-        {
-            if (!s.img) continue;
-            float a = s.baseA * (0.35f + 0.65f * Mathf.Abs(Mathf.Sin(t*s.speed + s.phase)));
-            var c = s.img.color; c.a = a; s.img.color = c;
-        }
-    }
-
-    IEnumerator LoopTitle()
-    {
-        while (true)
-        {
-            float t = Time.time;
-            if (_titleTMP)
-            {
-                float p = (Mathf.Sin(t*0.65f)+1f)*0.5f;
-                Color top = Color.Lerp(colTitleTop, new Color(0.82f,0.96f,1f), p);
-                Color bot = Color.Lerp(colTitleBot, new Color(0.38f,0.70f,1f), p);
-                _titleTMP.colorGradient = new VertexGradient(top,top,bot,bot);
-            }
-            if (_titleContainer)
-            {
-                float sc = 1f + 0.007f * Mathf.Sin(t*1.05f);
-                _titleContainer.localScale = Vector3.one * sc;
-            }
-            yield return null;
-        }
-    }
-
-    IEnumerator LoopRings()
-    {
-        float[] spd = {16f,-11f,20f};
-        float[] ph  = {0f,1.1f,2.3f};
-        while (true)
-        {
-            float t = Time.time;
-            for (int i = 0; i < _glowRings.Count; i++)
-            {
-                var r = _glowRings[i];
-                if (!r) continue;
-                r.rectTransform.Rotate(0f,0f,spd[i]*Time.deltaTime);
-                float sc = 1f + 0.028f*Mathf.Sin(t*1.35f+ph[i]);
-                r.rectTransform.localScale = Vector3.one*sc;
-                var c = r.color;
-                float baseA = i==0?0.19f:i==1?0.14f:0.10f;
-                c.a = baseA*(0.55f+0.45f*Mathf.Sin(t*1.75f+ph[i]));
-                r.color = c;
-            }
-            yield return null;
-        }
-    }
-
-    #endregion
-
-    // ────────────────────────────────────────────────────────
-    #region HOVER
-    // ────────────────────────────────────────────────────────
-
-    IEnumerator HoverAnim(RectTransform root, Image face, Image border, Image acc, TextMeshProUGUI lbl, bool enter)
-    {
-        float dur = 0.11f, el = 0f;
-        float   ts = enter ? 1.04f : 1f;
-        Color   tf = enter ? new Color(colButtonFace.r+0.07f, colButtonFace.g+0.09f, colButtonFace.b+0.14f, colButtonFace.a) : colButtonFace;
-        Color   tb = enter ? new Color(colAccentA.r,colAccentA.g,colAccentA.b,1f)  : colButtonBorder;
-        Color   ta = enter ? colAccentC : colAccentA;
-        Color   tl = enter ? colAccentA : colButtonText;
-        Vector3 ss = root.localScale; Color sf = face.color; Color sb = border.color; Color sa = acc.color; Color sl = lbl.color;
-        while (el < dur)
-        {
-            el += Time.deltaTime;
-            float p = OutCubic(Mathf.Clamp01(el/dur));
-            root.localScale = Vector3.Lerp(ss, Vector3.one*ts, p);
-            face.color   = Color.Lerp(sf, tf, p);
-            border.color = Color.Lerp(sb, tb, p);
-            acc.color    = Color.Lerp(sa, ta, p);
-            lbl.color    = Color.Lerp(sl, tl, p);
-            yield return null;
-        }
-    }
-
-    #endregion
-
-    // ────────────────────────────────────────────────────────
-    #region CLICK / LAUNCH
-    // ────────────────────────────────────────────────────────
-
-    void OnClick(int count, RectTransform btnRt, Image face, Image border)
+    #region GAME ACTIONS
+    void LaunchGame(int playerCount)
     {
         if (_transitioning) return;
         _transitioning = true;
-        PlayerPrefs.SetInt("PlayerCount", count);
+        PlayerPrefs.SetInt("PlayerCount", playerCount);
         PlayerPrefs.Save();
-        StartCoroutine(LaunchSeq(btnRt));
+        StartCoroutine(LaunchSeq());
     }
 
-    IEnumerator LaunchSeq(RectTransform btnRt)
+    IEnumerator LaunchSeq()
     {
-        PlaySfx(sfxClick);
-        StartCoroutine(BurstAt(btnRt.position));
-        yield return StartCoroutine(Punch(btnRt));
-        yield return StartCoroutine(Flash());
+        // ✨ Bonus: Make everyone sprint when you click play
+        runSpeed *= 5f;
+
+        Color c = new Color(colAccentA.r, colAccentA.g, colAccentA.b, 0.5f);
+        _flashOverlay.color = c;
+        float t = 0f;
+        while (t < 0.4f)
+        {
+            t += Time.deltaTime;
+            c.a = Mathf.Lerp(0.5f, 1f, t / 0.4f);
+            _flashOverlay.color = c;
+            yield return null;
+        }
         if (musicSource) StartCoroutine(FadeMusic());
-        yield return StartCoroutine(FadeUI(0.45f));
-        yield return new WaitForSeconds(0.1f);
+        yield return new WaitForSeconds(0.15f);
         SceneManager.LoadScene(gameSceneName);
     }
 
-    IEnumerator Punch(RectTransform rt)
+    void QuitGame()
     {
-        float t=0f; while(t<0.07f){t+=Time.deltaTime; rt.localScale=Vector3.Lerp(Vector3.one,Vector3.one*0.86f,t/0.07f); yield return null;}
-        t=0f; while(t<0.16f){t+=Time.deltaTime; rt.localScale=Vector3.one*(1f+0.05f*Mathf.Sin((t/0.16f)*Mathf.PI)); yield return null;}
-        rt.localScale = Vector3.one;
-    }
-
-    IEnumerator Flash()
-    {
-        if (!_flashOverlay) yield break;
-        Color c = new Color(colAccentA.r,colAccentA.g,colAccentA.b,0.38f); _flashOverlay.color=c;
-        float t=0f; while(t<0.28f){t+=Time.deltaTime; c.a=Mathf.Lerp(0.38f,0f,t/0.28f); _flashOverlay.color=c; yield return null;}
-        c.a=0f; _flashOverlay.color=c;
-    }
-
-    IEnumerator FadeUI(float dur)
-    {
-        var cgs = _canvas.GetComponentsInChildren<CanvasGroup>();
-        float t=0f; float[] s=new float[cgs.Length];
-        for(int i=0;i<cgs.Length;i++) s[i]=cgs[i].alpha;
-        while(t<dur){t+=Time.deltaTime; float p=t/dur; for(int i=0;i<cgs.Length;i++) cgs[i].alpha=Mathf.Lerp(s[i],0f,p); yield return null;}
+        #if UNITY_EDITOR
+        UnityEditor.EditorApplication.isPlaying = false;
+        #else
+        Application.Quit();
+        #endif
     }
 
     IEnumerator FadeMusic()
     {
         if (!musicSource) yield break;
-        float v=musicSource.volume, t=0f;
-        while(t<1f){t+=Time.deltaTime; musicSource.volume=Mathf.Lerp(v,0f,t); yield return null;}
-        musicSource.Stop(); musicSource.volume=v;
-    }
-
-    #endregion
-
-    // ────────────────────────────────────────────────────────
-    #region PROCEDURAL BURST PARTICLES
-    // ────────────────────────────────────────────────────────
-
-    IEnumerator BurstAt(Vector3 worldPos)
-    {
-        RectTransformUtility.ScreenPointToLocalPointInRectangle(
-            (RectTransform)_canvas.transform,
-            RectTransformUtility.WorldToScreenPoint(null, worldPos),
-            _canvas.worldCamera, out Vector2 lp);
-
-        int count = 44;
-        Color[] cols = {colAccentA, colAccentB, colAccentC, Color.white};
-        var parts = new List<(RectTransform rt, Image img, Vector2 vel, float life, Color col)>();
-
-        for (int i = 0; i < count; i++)
+        float v = musicSource.volume, t = 0f;
+        while (t < 1f)
         {
-            float ang = Random.Range(0f, Mathf.PI*2f);
-            float spd = Random.Range(130f, 520f);
-            float sz  = Random.Range(3f, 11f);
-            Color col = cols[Random.Range(0, cols.Length)];
-            var img   = Img("P", _canvas.transform, col);
-            img.rectTransform.sizeDelta = Vector2.one*sz;
-            img.rectTransform.anchorMin = img.rectTransform.anchorMax = img.rectTransform.pivot = Vector2.one*0.5f;
-            img.rectTransform.anchoredPosition = lp;
-            img.raycastTarget = false;
-            parts.Add((img.rectTransform, img, new Vector2(Mathf.Cos(ang),Mathf.Sin(ang))*spd, Random.Range(0.3f,0.72f), col));
-        }
-
-        float elapsed = 0f;
-        while (elapsed < 0.75f)
-        {
-            elapsed += Time.deltaTime;
-            for (int i = parts.Count-1; i >= 0; i--)
-            {
-                var (rt, img, vel, life, col) = parts[i];
-                if (!rt) { parts.RemoveAt(i); continue; }
-                float prog = elapsed/life;
-                if (prog >= 1f) { Destroy(rt.gameObject); parts.RemoveAt(i); continue; }
-                rt.anchoredPosition += vel * Time.deltaTime;
-                var newVel = vel * (1f - 5.5f*Time.deltaTime);
-                parts[i] = (rt, img, newVel, life, col);
-                float a = Mathf.Lerp(1f, 0f, prog*prog);
-                img.color = new Color(col.r,col.g,col.b,a);
-                rt.localScale = Vector3.one*Mathf.Lerp(1f,0f,prog);
-            }
+            t += Time.deltaTime;
+            musicSource.volume = Mathf.Lerp(v, 0f, t);
             yield return null;
         }
-        foreach (var (rt,_,_,_,_) in parts) if (rt) Destroy(rt.gameObject);
+        musicSource.Stop();
+        musicSource.volume = v;
     }
 
     #endregion
 
-    // ────────────────────────────────────────────────────────
+    #region INTRO
+    IEnumerator IntroSequence()
+    {
+        if (_titleCG) _titleCG.alpha = 0f;
+
+        yield return new WaitForSeconds(0.3f);
+
+        float t = 0f;
+        while (t < 0.6f)
+        {
+            t += Time.deltaTime;
+            if (_titleCG) _titleCG.alpha = t / 0.6f;
+            yield return null;
+        }
+        if (_titleCG) _titleCG.alpha = 1f;
+
+        _subtitleTMP.text = "";
+        foreach (char c in gameSubtitle)
+        {
+            _subtitleTMP.text += c;
+            yield return new WaitForSeconds(0.05f);
+        }
+    }
+
+    #endregion
+
+    #region BUTTON HOVER
+    IEnumerator BtnHover(RectTransform rt, Image face, Image border,
+        TextMeshProUGUI lbl, Color accentColor, bool enter)
+    {
+        float dur = 0.1f, el = 0f;
+        float   targetScale = enter ? 1.04f : 1f;
+        Color   targetFace  = enter
+            ? new Color(colButtonFace.r + 0.08f, colButtonFace.g + 0.10f,
+                        colButtonFace.b + 0.16f, colButtonFace.a)
+            : colButtonFace;
+        Color   targetBorder = enter
+            ? new Color(accentColor.r, accentColor.g, accentColor.b, 1f)
+            : new Color(accentColor.r, accentColor.g, accentColor.b, 0.7f);
+        Color   targetLbl   = enter ? accentColor : colButtonText;
+
+        Vector3 startScale = rt.localScale;
+        Color   startFace  = face.color;
+        Color   startBord  = border.color;
+        Color   startLbl   = lbl.color;
+
+        while (el < dur)
+        {
+            el += Time.deltaTime;
+            float p = 1f - Mathf.Pow(1f - Mathf.Clamp01(el / dur), 3f);
+            rt.localScale  = Vector3.Lerp(startScale, Vector3.one * targetScale, p);
+            face.color     = Color.Lerp(startFace,  targetFace,   p);
+            border.color   = Color.Lerp(startBord,  targetBorder, p);
+            lbl.color      = Color.Lerp(startLbl,   targetLbl,    p);
+            yield return null;
+        }
+    }
+
+    #endregion
+
     #region UTILITY
-    // ────────────────────────────────────────────────────────
+    void ApplyFont(TextMeshProUGUI tmp)
+    {
+        if (audiowideFont != null) tmp.font = audiowideFont;
+    }
 
     Image Img(string n, Transform p, Color c)
     {
-        var go  = new GameObject(n); go.transform.SetParent(p, false);
-        var img = go.AddComponent<Image>(); img.color = c; return img;
+        var go  = new GameObject(n);
+        go.transform.SetParent(p, false);
+        var img = go.AddComponent<Image>();
+        img.color = c;
+        return img;
     }
 
-    RectTransform Rect(string n, Transform p)
+    RectTransform MakeRect(string n, Transform p)
     {
-        var go = new GameObject(n); go.transform.SetParent(p, false);
+        var go = new GameObject(n);
+        go.transform.SetParent(p, false);
         return go.AddComponent<RectTransform>();
     }
 
-    TextMeshProUGUI TMP(string n, Transform p, string text)
+    TextMeshProUGUI MakeTMP(string n, Transform p, string text)
     {
-        var go  = new GameObject(n); go.transform.SetParent(p, false);
-        var tmp = go.AddComponent<TextMeshProUGUI>(); tmp.text = text; return tmp;
+        var go  = new GameObject(n);
+        go.transform.SetParent(p, false);
+        var tmp = go.AddComponent<TextMeshProUGUI>();
+        tmp.text = text;
+        return tmp;
     }
 
     void Stretch(RectTransform rt)
     {
-        rt.anchorMin  = Vector2.zero; rt.anchorMax = Vector2.one;
-        rt.offsetMin  = Vector2.zero; rt.offsetMax = Vector2.zero;
-        rt.pivot      = Vector2.one*0.5f;
+        rt.anchorMin  = Vector2.zero;
+        rt.anchorMax  = Vector2.one;
+        rt.offsetMin  = Vector2.zero;
+        rt.offsetMax  = Vector2.zero;
+        rt.pivot      = Vector2.one * 0.5f;
     }
 
     void AddTrigger(EventTrigger et, EventTriggerType type, UnityEngine.Events.UnityAction<BaseEventData> cb)
@@ -808,9 +750,9 @@ public class MainMenuController : MonoBehaviour
     }
 
     void PlaySfx(AudioClip clip, float vol = 1f)
-    { if (clip && _sfx) _sfx.PlayOneShot(clip, vol); }
-
-    static float OutCubic(float t) => 1f - Mathf.Pow(1f-t, 3f);
+    {
+        if (clip && _sfx) _sfx.PlayOneShot(clip, vol);
+    }
 
     #endregion
 }

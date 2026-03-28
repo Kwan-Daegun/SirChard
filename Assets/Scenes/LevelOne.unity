@@ -400,6 +400,38 @@ PrefabInstance:
       propertyPath: lampIndex
       value: 5
       objectReference: {fileID: 0}
+    - target: {fileID: 3419803761492578804, guid: e14db45d955275f43b39c2fae2cb25ad, type: 3}
+      propertyPath: baseColor.b
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3419803761492578804, guid: e14db45d955275f43b39c2fae2cb25ad, type: 3}
+      propertyPath: baseColor.g
+      value: 0.9810766
+      objectReference: {fileID: 0}
+    - target: {fileID: 3419803761492578804, guid: e14db45d955275f43b39c2fae2cb25ad, type: 3}
+      propertyPath: baseColor.r
+      value: 0.8443396
+      objectReference: {fileID: 0}
+    - target: {fileID: 3419803761492578804, guid: e14db45d955275f43b39c2fae2cb25ad, type: 3}
+      propertyPath: randomImages.Array.size
+      value: 4
+      objectReference: {fileID: 0}
+    - target: {fileID: 3419803761492578804, guid: e14db45d955275f43b39c2fae2cb25ad, type: 3}
+      propertyPath: 'randomImages.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2800000, guid: b50e4e339be43514b84533e822c74eab, type: 3}
+    - target: {fileID: 3419803761492578804, guid: e14db45d955275f43b39c2fae2cb25ad, type: 3}
+      propertyPath: 'randomImages.Array.data[1]'
+      value: 
+      objectReference: {fileID: 2800000, guid: 02b9592ef883fdd4882e6d9dc633dd28, type: 3}
+    - target: {fileID: 3419803761492578804, guid: e14db45d955275f43b39c2fae2cb25ad, type: 3}
+      propertyPath: 'randomImages.Array.data[2]'
+      value: 
+      objectReference: {fileID: 2800000, guid: 7aaa8126a0c960642bef45377155cae5, type: 3}
+    - target: {fileID: 3419803761492578804, guid: e14db45d955275f43b39c2fae2cb25ad, type: 3}
+      propertyPath: 'randomImages.Array.data[3]'
+      value: 
+      objectReference: {fileID: 2800000, guid: 4f5d994664b94de47bea51614e358956, type: 3}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -1835,9 +1867,41 @@ PrefabInstance:
       value: 6
       objectReference: {fileID: 0}
     - target: {fileID: 3419803761492578804, guid: e14db45d955275f43b39c2fae2cb25ad, type: 3}
+      propertyPath: baseColor.b
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3419803761492578804, guid: e14db45d955275f43b39c2fae2cb25ad, type: 3}
+      propertyPath: baseColor.g
+      value: 0.9810766
+      objectReference: {fileID: 0}
+    - target: {fileID: 3419803761492578804, guid: e14db45d955275f43b39c2fae2cb25ad, type: 3}
+      propertyPath: baseColor.r
+      value: 0.8443396
+      objectReference: {fileID: 0}
+    - target: {fileID: 3419803761492578804, guid: e14db45d955275f43b39c2fae2cb25ad, type: 3}
       propertyPath: castShadows
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 3419803761492578804, guid: e14db45d955275f43b39c2fae2cb25ad, type: 3}
+      propertyPath: randomImages.Array.size
+      value: 4
+      objectReference: {fileID: 0}
+    - target: {fileID: 3419803761492578804, guid: e14db45d955275f43b39c2fae2cb25ad, type: 3}
+      propertyPath: 'randomImages.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2800000, guid: b50e4e339be43514b84533e822c74eab, type: 3}
+    - target: {fileID: 3419803761492578804, guid: e14db45d955275f43b39c2fae2cb25ad, type: 3}
+      propertyPath: 'randomImages.Array.data[1]'
+      value: 
+      objectReference: {fileID: 2800000, guid: 02b9592ef883fdd4882e6d9dc633dd28, type: 3}
+    - target: {fileID: 3419803761492578804, guid: e14db45d955275f43b39c2fae2cb25ad, type: 3}
+      propertyPath: 'randomImages.Array.data[2]'
+      value: 
+      objectReference: {fileID: 2800000, guid: 7aaa8126a0c960642bef45377155cae5, type: 3}
+    - target: {fileID: 3419803761492578804, guid: e14db45d955275f43b39c2fae2cb25ad, type: 3}
+      propertyPath: 'randomImages.Array.data[3]'
+      value: 
+      objectReference: {fileID: 2800000, guid: 4f5d994664b94de47bea51614e358956, type: 3}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -2640,6 +2704,38 @@ PrefabInstance:
       propertyPath: lampIndex
       value: 3
       objectReference: {fileID: 0}
+    - target: {fileID: 3419803761492578804, guid: e14db45d955275f43b39c2fae2cb25ad, type: 3}
+      propertyPath: baseColor.b
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3419803761492578804, guid: e14db45d955275f43b39c2fae2cb25ad, type: 3}
+      propertyPath: baseColor.g
+      value: 0.9810766
+      objectReference: {fileID: 0}
+    - target: {fileID: 3419803761492578804, guid: e14db45d955275f43b39c2fae2cb25ad, type: 3}
+      propertyPath: baseColor.r
+      value: 0.8443396
+      objectReference: {fileID: 0}
+    - target: {fileID: 3419803761492578804, guid: e14db45d955275f43b39c2fae2cb25ad, type: 3}
+      propertyPath: randomImages.Array.size
+      value: 4
+      objectReference: {fileID: 0}
+    - target: {fileID: 3419803761492578804, guid: e14db45d955275f43b39c2fae2cb25ad, type: 3}
+      propertyPath: 'randomImages.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2800000, guid: b50e4e339be43514b84533e822c74eab, type: 3}
+    - target: {fileID: 3419803761492578804, guid: e14db45d955275f43b39c2fae2cb25ad, type: 3}
+      propertyPath: 'randomImages.Array.data[1]'
+      value: 
+      objectReference: {fileID: 2800000, guid: 02b9592ef883fdd4882e6d9dc633dd28, type: 3}
+    - target: {fileID: 3419803761492578804, guid: e14db45d955275f43b39c2fae2cb25ad, type: 3}
+      propertyPath: 'randomImages.Array.data[2]'
+      value: 
+      objectReference: {fileID: 2800000, guid: 7aaa8126a0c960642bef45377155cae5, type: 3}
+    - target: {fileID: 3419803761492578804, guid: e14db45d955275f43b39c2fae2cb25ad, type: 3}
+      propertyPath: 'randomImages.Array.data[3]'
+      value: 
+      objectReference: {fileID: 2800000, guid: 4f5d994664b94de47bea51614e358956, type: 3}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -2694,21 +2790,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 76f4a453935bc8d44b34d43def5a4df9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  energyBall: {fileID: 643827647}
-  pointsPerSecond: 10
-  players:
-  - playerName: Red Ranger
-    playerObject: {fileID: 155627015}
-    score: 0
-  - playerName: Blue Ranger
-    playerObject: {fileID: 305284828}
-    score: 0
-  - playerName: Yellow Ranger
-    playerObject: {fileID: 1289081960}
-    score: 0
-  - playerName: Purple Ranger
-    playerObject: {fileID: 1679956149}
-    score: 0
 --- !u!1 &634603658
 GameObject:
   m_ObjectHideFlags: 0
@@ -3176,6 +3257,38 @@ PrefabInstance:
       propertyPath: lampIndex
       value: 4
       objectReference: {fileID: 0}
+    - target: {fileID: 3419803761492578804, guid: e14db45d955275f43b39c2fae2cb25ad, type: 3}
+      propertyPath: baseColor.b
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3419803761492578804, guid: e14db45d955275f43b39c2fae2cb25ad, type: 3}
+      propertyPath: baseColor.g
+      value: 0.9810766
+      objectReference: {fileID: 0}
+    - target: {fileID: 3419803761492578804, guid: e14db45d955275f43b39c2fae2cb25ad, type: 3}
+      propertyPath: baseColor.r
+      value: 0.8443396
+      objectReference: {fileID: 0}
+    - target: {fileID: 3419803761492578804, guid: e14db45d955275f43b39c2fae2cb25ad, type: 3}
+      propertyPath: randomImages.Array.size
+      value: 4
+      objectReference: {fileID: 0}
+    - target: {fileID: 3419803761492578804, guid: e14db45d955275f43b39c2fae2cb25ad, type: 3}
+      propertyPath: 'randomImages.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2800000, guid: b50e4e339be43514b84533e822c74eab, type: 3}
+    - target: {fileID: 3419803761492578804, guid: e14db45d955275f43b39c2fae2cb25ad, type: 3}
+      propertyPath: 'randomImages.Array.data[1]'
+      value: 
+      objectReference: {fileID: 2800000, guid: 02b9592ef883fdd4882e6d9dc633dd28, type: 3}
+    - target: {fileID: 3419803761492578804, guid: e14db45d955275f43b39c2fae2cb25ad, type: 3}
+      propertyPath: 'randomImages.Array.data[2]'
+      value: 
+      objectReference: {fileID: 2800000, guid: 7aaa8126a0c960642bef45377155cae5, type: 3}
+    - target: {fileID: 3419803761492578804, guid: e14db45d955275f43b39c2fae2cb25ad, type: 3}
+      propertyPath: 'randomImages.Array.data[3]'
+      value: 
+      objectReference: {fileID: 2800000, guid: 4f5d994664b94de47bea51614e358956, type: 3}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -3246,6 +3359,18 @@ PrefabInstance:
       value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 3419803761492578804, guid: e14db45d955275f43b39c2fae2cb25ad, type: 3}
+      propertyPath: baseColor.b
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3419803761492578804, guid: e14db45d955275f43b39c2fae2cb25ad, type: 3}
+      propertyPath: baseColor.g
+      value: 0.9810766
+      objectReference: {fileID: 0}
+    - target: {fileID: 3419803761492578804, guid: e14db45d955275f43b39c2fae2cb25ad, type: 3}
+      propertyPath: baseColor.r
+      value: 0.8443396
+      objectReference: {fileID: 0}
+    - target: {fileID: 3419803761492578804, guid: e14db45d955275f43b39c2fae2cb25ad, type: 3}
       propertyPath: castShadows
       value: 0
       objectReference: {fileID: 0}
@@ -3253,6 +3378,26 @@ PrefabInstance:
       propertyPath: beamSweepSpeed
       value: 4
       objectReference: {fileID: 0}
+    - target: {fileID: 3419803761492578804, guid: e14db45d955275f43b39c2fae2cb25ad, type: 3}
+      propertyPath: randomImages.Array.size
+      value: 4
+      objectReference: {fileID: 0}
+    - target: {fileID: 3419803761492578804, guid: e14db45d955275f43b39c2fae2cb25ad, type: 3}
+      propertyPath: 'randomImages.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2800000, guid: b50e4e339be43514b84533e822c74eab, type: 3}
+    - target: {fileID: 3419803761492578804, guid: e14db45d955275f43b39c2fae2cb25ad, type: 3}
+      propertyPath: 'randomImages.Array.data[1]'
+      value: 
+      objectReference: {fileID: 2800000, guid: 02b9592ef883fdd4882e6d9dc633dd28, type: 3}
+    - target: {fileID: 3419803761492578804, guid: e14db45d955275f43b39c2fae2cb25ad, type: 3}
+      propertyPath: 'randomImages.Array.data[2]'
+      value: 
+      objectReference: {fileID: 2800000, guid: 7aaa8126a0c960642bef45377155cae5, type: 3}
+    - target: {fileID: 3419803761492578804, guid: e14db45d955275f43b39c2fae2cb25ad, type: 3}
+      propertyPath: 'randomImages.Array.data[3]'
+      value: 
+      objectReference: {fileID: 2800000, guid: 4f5d994664b94de47bea51614e358956, type: 3}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -3655,6 +3800,38 @@ PrefabInstance:
       propertyPath: lampIndex
       value: 7
       objectReference: {fileID: 0}
+    - target: {fileID: 3419803761492578804, guid: e14db45d955275f43b39c2fae2cb25ad, type: 3}
+      propertyPath: baseColor.b
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3419803761492578804, guid: e14db45d955275f43b39c2fae2cb25ad, type: 3}
+      propertyPath: baseColor.g
+      value: 0.9810766
+      objectReference: {fileID: 0}
+    - target: {fileID: 3419803761492578804, guid: e14db45d955275f43b39c2fae2cb25ad, type: 3}
+      propertyPath: baseColor.r
+      value: 0.8443396
+      objectReference: {fileID: 0}
+    - target: {fileID: 3419803761492578804, guid: e14db45d955275f43b39c2fae2cb25ad, type: 3}
+      propertyPath: randomImages.Array.size
+      value: 4
+      objectReference: {fileID: 0}
+    - target: {fileID: 3419803761492578804, guid: e14db45d955275f43b39c2fae2cb25ad, type: 3}
+      propertyPath: 'randomImages.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2800000, guid: b50e4e339be43514b84533e822c74eab, type: 3}
+    - target: {fileID: 3419803761492578804, guid: e14db45d955275f43b39c2fae2cb25ad, type: 3}
+      propertyPath: 'randomImages.Array.data[1]'
+      value: 
+      objectReference: {fileID: 2800000, guid: 02b9592ef883fdd4882e6d9dc633dd28, type: 3}
+    - target: {fileID: 3419803761492578804, guid: e14db45d955275f43b39c2fae2cb25ad, type: 3}
+      propertyPath: 'randomImages.Array.data[2]'
+      value: 
+      objectReference: {fileID: 2800000, guid: 7aaa8126a0c960642bef45377155cae5, type: 3}
+    - target: {fileID: 3419803761492578804, guid: e14db45d955275f43b39c2fae2cb25ad, type: 3}
+      propertyPath: 'randomImages.Array.data[3]'
+      value: 
+      objectReference: {fileID: 2800000, guid: 4f5d994664b94de47bea51614e358956, type: 3}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -3831,6 +4008,38 @@ PrefabInstance:
       propertyPath: lampIndex
       value: 8
       objectReference: {fileID: 0}
+    - target: {fileID: 3419803761492578804, guid: e14db45d955275f43b39c2fae2cb25ad, type: 3}
+      propertyPath: baseColor.b
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3419803761492578804, guid: e14db45d955275f43b39c2fae2cb25ad, type: 3}
+      propertyPath: baseColor.g
+      value: 0.9810766
+      objectReference: {fileID: 0}
+    - target: {fileID: 3419803761492578804, guid: e14db45d955275f43b39c2fae2cb25ad, type: 3}
+      propertyPath: baseColor.r
+      value: 0.8443396
+      objectReference: {fileID: 0}
+    - target: {fileID: 3419803761492578804, guid: e14db45d955275f43b39c2fae2cb25ad, type: 3}
+      propertyPath: randomImages.Array.size
+      value: 4
+      objectReference: {fileID: 0}
+    - target: {fileID: 3419803761492578804, guid: e14db45d955275f43b39c2fae2cb25ad, type: 3}
+      propertyPath: 'randomImages.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2800000, guid: b50e4e339be43514b84533e822c74eab, type: 3}
+    - target: {fileID: 3419803761492578804, guid: e14db45d955275f43b39c2fae2cb25ad, type: 3}
+      propertyPath: 'randomImages.Array.data[1]'
+      value: 
+      objectReference: {fileID: 2800000, guid: 02b9592ef883fdd4882e6d9dc633dd28, type: 3}
+    - target: {fileID: 3419803761492578804, guid: e14db45d955275f43b39c2fae2cb25ad, type: 3}
+      propertyPath: 'randomImages.Array.data[2]'
+      value: 
+      objectReference: {fileID: 2800000, guid: 7aaa8126a0c960642bef45377155cae5, type: 3}
+    - target: {fileID: 3419803761492578804, guid: e14db45d955275f43b39c2fae2cb25ad, type: 3}
+      propertyPath: 'randomImages.Array.data[3]'
+      value: 
+      objectReference: {fileID: 2800000, guid: 4f5d994664b94de47bea51614e358956, type: 3}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -3897,9 +4106,41 @@ PrefabInstance:
       value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 3419803761492578804, guid: e14db45d955275f43b39c2fae2cb25ad, type: 3}
+      propertyPath: baseColor.b
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3419803761492578804, guid: e14db45d955275f43b39c2fae2cb25ad, type: 3}
+      propertyPath: baseColor.g
+      value: 0.9810766
+      objectReference: {fileID: 0}
+    - target: {fileID: 3419803761492578804, guid: e14db45d955275f43b39c2fae2cb25ad, type: 3}
+      propertyPath: baseColor.r
+      value: 0.8443396
+      objectReference: {fileID: 0}
+    - target: {fileID: 3419803761492578804, guid: e14db45d955275f43b39c2fae2cb25ad, type: 3}
       propertyPath: castShadows
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 3419803761492578804, guid: e14db45d955275f43b39c2fae2cb25ad, type: 3}
+      propertyPath: randomImages.Array.size
+      value: 4
+      objectReference: {fileID: 0}
+    - target: {fileID: 3419803761492578804, guid: e14db45d955275f43b39c2fae2cb25ad, type: 3}
+      propertyPath: 'randomImages.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2800000, guid: b50e4e339be43514b84533e822c74eab, type: 3}
+    - target: {fileID: 3419803761492578804, guid: e14db45d955275f43b39c2fae2cb25ad, type: 3}
+      propertyPath: 'randomImages.Array.data[1]'
+      value: 
+      objectReference: {fileID: 2800000, guid: 02b9592ef883fdd4882e6d9dc633dd28, type: 3}
+    - target: {fileID: 3419803761492578804, guid: e14db45d955275f43b39c2fae2cb25ad, type: 3}
+      propertyPath: 'randomImages.Array.data[2]'
+      value: 
+      objectReference: {fileID: 2800000, guid: 7aaa8126a0c960642bef45377155cae5, type: 3}
+    - target: {fileID: 3419803761492578804, guid: e14db45d955275f43b39c2fae2cb25ad, type: 3}
+      propertyPath: 'randomImages.Array.data[3]'
+      value: 
+      objectReference: {fileID: 2800000, guid: 4f5d994664b94de47bea51614e358956, type: 3}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -3978,9 +4219,41 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 3419803761492578804, guid: e14db45d955275f43b39c2fae2cb25ad, type: 3}
+      propertyPath: baseColor.b
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3419803761492578804, guid: e14db45d955275f43b39c2fae2cb25ad, type: 3}
+      propertyPath: baseColor.g
+      value: 0.9810766
+      objectReference: {fileID: 0}
+    - target: {fileID: 3419803761492578804, guid: e14db45d955275f43b39c2fae2cb25ad, type: 3}
+      propertyPath: baseColor.r
+      value: 0.8443396
+      objectReference: {fileID: 0}
+    - target: {fileID: 3419803761492578804, guid: e14db45d955275f43b39c2fae2cb25ad, type: 3}
       propertyPath: castShadows
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 3419803761492578804, guid: e14db45d955275f43b39c2fae2cb25ad, type: 3}
+      propertyPath: randomImages.Array.size
+      value: 4
+      objectReference: {fileID: 0}
+    - target: {fileID: 3419803761492578804, guid: e14db45d955275f43b39c2fae2cb25ad, type: 3}
+      propertyPath: 'randomImages.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2800000, guid: b50e4e339be43514b84533e822c74eab, type: 3}
+    - target: {fileID: 3419803761492578804, guid: e14db45d955275f43b39c2fae2cb25ad, type: 3}
+      propertyPath: 'randomImages.Array.data[1]'
+      value: 
+      objectReference: {fileID: 2800000, guid: 02b9592ef883fdd4882e6d9dc633dd28, type: 3}
+    - target: {fileID: 3419803761492578804, guid: e14db45d955275f43b39c2fae2cb25ad, type: 3}
+      propertyPath: 'randomImages.Array.data[2]'
+      value: 
+      objectReference: {fileID: 2800000, guid: 7aaa8126a0c960642bef45377155cae5, type: 3}
+    - target: {fileID: 3419803761492578804, guid: e14db45d955275f43b39c2fae2cb25ad, type: 3}
+      propertyPath: 'randomImages.Array.data[3]'
+      value: 
+      objectReference: {fileID: 2800000, guid: 4f5d994664b94de47bea51614e358956, type: 3}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -7418,6 +7691,7 @@ MonoBehaviour:
   spawn3: {fileID: 1187739743}
   spawn4: {fileID: 1216197979}
   scoreToWin: 500
+  customFont: {fileID: 11400000, guid: e75941c6b494ba240aa5e7a0ca93cb79, type: 2}
 --- !u!82 &1809240756
 AudioSource:
   m_ObjectHideFlags: 0
