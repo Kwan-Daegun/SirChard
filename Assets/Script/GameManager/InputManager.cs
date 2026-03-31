@@ -1,9 +1,16 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.Utilities;
+using UnityEngine.UI;
+using TMPro;
 
 public class InputManager : MonoBehaviour
 {
+    [Header("Player Panels")]
+    public GameObject p1Object;
+    public GameObject p2Object;
+    public GameObject p3Object;
+    public GameObject p4Object;
     public PlayerMovement player1;
     public PlayerMovement player2;
     public PlayerTackle tackle1;
@@ -19,6 +26,39 @@ public class InputManager : MonoBehaviour
     Gamepad p3Pad;
     Gamepad p4Pad;
 
+    // =========================
+    // READY SYSTEM
+    // =========================
+    bool p1Ready = false;
+    bool p2Ready = false;
+    bool p3Ready = false;
+    bool p4Ready = false;
+
+    bool gameStarted = false;
+
+    [Header("UI")]
+    public GameObject readyPanel;
+
+    [Header("Ready UI")]
+    public Image p1Panel;
+    public Image p2Panel;
+    public Image p3Panel;
+    public Image p4Panel;
+
+    public TextMeshProUGUI p1Text;
+    public TextMeshProUGUI p2Text;
+    public TextMeshProUGUI p3Text;
+    public TextMeshProUGUI p4Text;
+
+    void SetupPlayerPanels()
+    {
+        int playerCount = PlayerPrefs.GetInt("PlayerCount", 2);
+
+        if (p1Object) p1Object.SetActive(playerCount >= 1);
+        if (p2Object) p2Object.SetActive(playerCount >= 2);
+        if (p3Object) p3Object.SetActive(playerCount >= 3);
+        if (p4Object) p4Object.SetActive(playerCount >= 4);
+    }
     void OnEnable()
     {
         InputSystem.onDeviceChange += OnDeviceChange;
@@ -32,6 +72,23 @@ public class InputManager : MonoBehaviour
     void Start()
     {
         AssignControllers();
+        SetupPlayerPanels();
+
+        // LOCK movement at start
+        if (player1) player1.enabled = false;
+        if (player2) player2.enabled = false;
+
+        if (player3Input)
+        {
+            var m = player3Input.GetComponent<PlayerMovement>();
+            if (m) m.enabled = false;
+        }
+
+        if (player4Input)
+        {
+            var m = player4Input.GetComponent<PlayerMovement>();
+            if (m) m.enabled = false;
+        }
     }
 
     void AssignControllers()
@@ -153,6 +210,18 @@ public class InputManager : MonoBehaviour
 
     void Update()
     {
+        // =========================
+        // READY PHASE
+        // =========================
+        if (!gameStarted)
+        {
+            HandleReadyInputs();
+            return;
+        }
+
+        // =========================
+        // NORMAL GAME INPUT
+        // =========================
         bool p1HasController = player1Input != null && player1Input.devices.Count > 0;
         bool p2HasController = player2Input != null && player2Input.devices.Count > 0;
 
@@ -161,6 +230,122 @@ public class InputManager : MonoBehaviour
 
         if (!p2HasController)
             HandlePlayer2();
+    }
+
+    void HandleReadyInputs()
+    {
+        // PLAYER 1
+        if (!p1Ready)
+        {
+            if ((p1Pad != null && p1Pad.startButton.wasPressedThisFrame) || Input.GetKeyDown(KeyCode.Space))
+            {
+                p1Ready = true;
+                SetReadyVisual(1);
+                Debug.Log("P1 READY");
+            }
+        }
+
+        // PLAYER 2
+        if (!p2Ready)
+        {
+            if ((p2Pad != null && p2Pad.startButton.wasPressedThisFrame) || Input.GetKeyDown(KeyCode.Keypad0))
+            {
+                p2Ready = true;
+                SetReadyVisual(2);
+                Debug.Log("P2 READY");
+            }
+        }
+
+        // PLAYER 3
+        if (player3Input != null && !p3Ready)
+        {
+            if (p3Pad != null && p3Pad.startButton.wasPressedThisFrame)
+            {
+                p3Ready = true;
+                SetReadyVisual(3);
+                Debug.Log("P3 READY");
+            }
+        }
+
+        // PLAYER 4
+        if (player4Input != null && !p4Ready)
+        {
+            if (p4Pad != null && p4Pad.startButton.wasPressedThisFrame)
+            {
+                p4Ready = true;
+                SetReadyVisual(4);
+                Debug.Log("P4 READY");
+            }
+        }
+
+        CheckAllReady();
+    }
+
+    void SetReadyVisual(int playerIndex)
+    {
+        switch (playerIndex)
+        {
+            case 1:
+                if (p1Panel) p1Panel.color = Color.green;
+                if (p1Text) p1Text.text = "READY ✔";
+                break;
+
+            case 2:
+                if (p2Panel) p2Panel.color = Color.green;
+                if (p2Text) p2Text.text = "READY ✔";
+                break;
+
+            case 3:
+                if (p3Panel) p3Panel.color = Color.green;
+                if (p3Text) p3Text.text = "READY ✔";
+                break;
+
+            case 4:
+                if (p4Panel) p4Panel.color = Color.green;
+                if (p4Text) p4Text.text = "READY ✔";
+                break;
+        }
+    }
+
+    void CheckAllReady()
+    {
+        int playerCount = PlayerPrefs.GetInt("PlayerCount", 2);
+
+        bool allReady =
+            (playerCount < 1 || p1Ready) &&
+            (playerCount < 2 || p2Ready) &&
+            (playerCount < 3 || p3Ready) &&
+            (playerCount < 4 || p4Ready);
+
+        if (allReady)
+        {
+            StartGame();
+        }
+    }
+
+    void StartGame()
+    {
+        gameStarted = true;
+
+        Debug.Log("GAME START");
+
+        if (readyPanel != null)
+            readyPanel.SetActive(false);
+
+        if (player1) player1.enabled = true;
+        if (player2) player2.enabled = true;
+
+        if (player3Input)
+        {
+            var m = player3Input.GetComponent<PlayerMovement>();
+            if (m) m.enabled = true;
+        }
+
+        if (player4Input)
+        {
+            var m = player4Input.GetComponent<PlayerMovement>();
+            if (m) m.enabled = true;
+        }
     }
 
     void HandlePlayer1()
