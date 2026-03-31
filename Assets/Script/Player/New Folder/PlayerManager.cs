@@ -13,6 +13,7 @@ public class PlayerManager : MonoBehaviour
 {
     public EnergyBall energyBall;
     public float pointsPerSecond = 10f;
+    public float pointsPerSecondDecrease = 10f;
 
     public List<PlayerData> players = new List<PlayerData>();
 
@@ -43,7 +44,7 @@ public class PlayerManager : MonoBehaviour
             }
             else
             {
-                players[i].score -= pointsPerSecond * Time.deltaTime;
+                players[i].score -= pointsPerSecondDecrease * Time.deltaTime;
             }
 
             // Prevent score from dropping below zero
