@@ -422,7 +422,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
+  m_SizeDelta: {x: 90, y: 90}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1462856764
 MonoBehaviour:
@@ -531,7 +531,7 @@ MonoBehaviour:
   videoPlayer: {fileID: 1755339392}
   logoVideos:
   - {fileID: 32900000, guid: 5823e97ef56ab0a40b0915f34f66c5fa, type: 3}
-  nextSceneName: MainMenu
+  nextSceneName: TitleScene
 --- !u!114 &1755339394
 MonoBehaviour:
   m_ObjectHideFlags: 0
