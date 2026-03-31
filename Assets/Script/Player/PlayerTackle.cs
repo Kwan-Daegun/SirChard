@@ -37,7 +37,8 @@ public class PlayerTackle : MonoBehaviour
 
     public void TryTackle()
     {
-        // ++ ADDED: Prevent tackling if knocked down
+        if (GameState.IsGameplayLocked) return;
+
         if (_movement != null && _movement.isKnockedDown) return;
 
         if (Time.time - _lastTackleTime < tackleCooldown || IsTackling) return;

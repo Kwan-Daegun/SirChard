@@ -14,6 +14,7 @@ public class LEDLamp : MonoBehaviour
     public int totalLamps = 8;
 
     [Header("Light")]
+    public bool usePointLight = true; // New Checkbox to enable/disable the light
     public Light pointLight;
     public float baseIntensity = 8f;
     public float lightRange = 15f;
@@ -34,6 +35,7 @@ public class LEDLamp : MonoBehaviour
 
     [Header("Beam Sweep")]
     public bool showBeams = true;
+    public bool ignoreParentScale = true; // The Checkbox you asked for
     [Range(1f, 60f)] public float beamSweepSpeed = 8f;
     [Range(10f, 80f)] public float beamSweepRange = 40f;
 
@@ -104,25 +106,16 @@ public class LEDLamp : MonoBehaviour
         if (!pointLight) pointLight = GetComponentInChildren<Light>();
         _rend = GetComponent<Renderer>();
         if (_rend) _mat = _rend.material;
+
         if (pointLight)
         {
+            pointLight.enabled = usePointLight; // Initialize state
             pointLight.range = lightRange;
             pointLight.shadows = castShadows ? LightShadows.Soft : LightShadows.None;
         }
 
         BuildBeams();
         BuildHalo();
-
-        if (!showBeams)
-        {
-            if (_beamA) _beamA.gameObject.SetActive(false);
-            if (_beamB) _beamB.gameObject.SetActive(false);
-            foreach (Transform child in transform)
-            {
-                if (child.name == "PivotA" || child.name == "PivotB")
-                    child.gameObject.SetActive(false);
-            }
-        }
     }
 
     void OnDestroy() { s_allLamps.Remove(this); CleanParticles(); }
@@ -143,6 +136,52 @@ public class LEDLamp : MonoBehaviour
         s_time += Time.deltaTime;
         TickParticles();
         UpdateImageScroll();
+
+        if (pointLight && pointLight.enabled != usePointLight)
+        {
+            pointLight.enabled = usePointLight;
+        }
+
+        UpdateBeamVisibility();
+    }
+
+    void LateUpdate()
+    {
+        // Forcing scale in LateUpdate to ensure it stays fixed regardless of parent
+        ApplyCounterScale();
+    }
+
+    private void UpdateBeamVisibility()
+    {
+        if (_beamA && _beamA.gameObject.activeSelf != showBeams)
+        {
+            _beamA.gameObject.SetActive(showBeams);
+        }
+        if (_beamB && _beamB.gameObject.activeSelf != showBeams)
+        {
+            _beamB.gameObject.SetActive(showBeams);
+        }
+        if (_halo && _halo.gameObject.activeSelf != showBeams)
+        {
+            _halo.gameObject.SetActive(showBeams);
+        }
+    }
+
+    private void ApplyCounterScale()
+    {
+        if (!ignoreParentScale) return;
+
+        // We use lossyScale of THIS object (the floor) to determine how much the children are being stretched
+        Vector3 parentScale = transform.lossyScale;
+        if (parentScale.x == 0 || parentScale.y == 0 || parentScale.z == 0) return;
+
+        // Target global scales
+        Vector3 targetBeamScale = new Vector3(0.04f, 4f, 0.04f);
+        Vector3 targetHaloScale = new Vector3(0.5f, 0.02f, 0.8f);
+
+        if (_beamA) _beamA.localScale = new Vector3(targetBeamScale.x / parentScale.x, targetBeamScale.y / parentScale.y, targetBeamScale.z / parentScale.z);
+        if (_beamB) _beamB.localScale = new Vector3(targetBeamScale.x / parentScale.x, targetBeamScale.y / parentScale.y, targetBeamScale.z / parentScale.z);
+        if (_halo) _halo.localScale = new Vector3(targetHaloScale.x / parentScale.x, targetHaloScale.y / parentScale.y, targetHaloScale.z / parentScale.z);
     }
 
     #region IMAGE LOGIC
@@ -156,7 +195,6 @@ public class LEDLamp : MonoBehaviour
         string texProp = _mat.HasProperty("_BaseMap") ? "_BaseMap" : "_MainTex";
         _mat.SetTexture(texProp, selected);
 
-        // Ensure Tiling is 1,1 for standard scroll
         _mat.SetTextureScale(texProp, new Vector2(1, 1));
 
         if (_mat.HasProperty("_Surface")) _mat.SetFloat("_Surface", 0);
@@ -168,11 +206,8 @@ public class LEDLamp : MonoBehaviour
 
         string texProp = _mat.HasProperty("_BaseMap") ? "_BaseMap" : "_MainTex";
 
-        // Scroll the texture
         _textureOffset -= Time.deltaTime * scrollSpeed;
 
-        // If we have finished scrolling one full image (offset < -1), 
-        // reset offset and pick a new random image
         if (_textureOffset <= -1f)
         {
             _textureOffset += 1f;
@@ -251,6 +286,9 @@ public class LEDLamp : MonoBehaviour
 
         _beamA.localRotation = Quaternion.Euler(0f, 0f, -35f);
         _beamB.localRotation = Quaternion.Euler(0f, 0f, 35f);
+
+        _beamA.gameObject.SetActive(showBeams);
+        _beamB.gameObject.SetActive(showBeams);
     }
 
     IEnumerator SweepBeams()
@@ -262,17 +300,20 @@ public class LEDLamp : MonoBehaviour
 
         while (true)
         {
-            float angleA = Mathf.Sin(s_time * speedA * Mathf.Deg2Rad + phaseA) * beamSweepRange;
-            float angleB = Mathf.Sin(s_time * speedB * Mathf.Deg2Rad + phaseB) * beamSweepRange;
-            if (_beamA) _beamA.localRotation = Quaternion.Euler(0f, 0f, angleA);
-            if (_beamB) _beamB.localRotation = Quaternion.Euler(0f, 0f, angleB);
-
-            if (s_mode == ShowMode.EnergyCharge)
+            if (showBeams)
             {
-                float chargePos = (s_time % 6f) / 6f;
-                float spinSpeed = chargePos * 180f;
-                if (_beamA) _beamA.Rotate(Vector3.up, spinSpeed * Time.deltaTime, Space.World);
-                if (_beamB) _beamB.Rotate(Vector3.up, -spinSpeed * Time.deltaTime, Space.World);
+                float angleA = Mathf.Sin(s_time * speedA * Mathf.Deg2Rad + phaseA) * beamSweepRange;
+                float angleB = Mathf.Sin(s_time * speedB * Mathf.Deg2Rad + phaseB) * beamSweepRange;
+                if (_beamA) _beamA.localRotation = Quaternion.Euler(0f, 0f, angleA);
+                if (_beamB) _beamB.localRotation = Quaternion.Euler(0f, 0f, angleB);
+
+                if (s_mode == ShowMode.EnergyCharge)
+                {
+                    float chargePos = (s_time % 6f) / 6f;
+                    float spinSpeed = chargePos * 180f;
+                    if (_beamA) _beamA.Rotate(Vector3.up, spinSpeed * Time.deltaTime, Space.World);
+                    if (_beamB) _beamB.Rotate(Vector3.up, -spinSpeed * Time.deltaTime, Space.World);
+                }
             }
             yield return null;
         }
@@ -284,22 +325,30 @@ public class LEDLamp : MonoBehaviour
         var go = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
         go.name = "Halo";
         go.transform.SetParent(transform, false);
-        Destroy(go.GetComponent<Collider>());
+
+        Collider col = go.GetComponent<Collider>();
+        if (col != null) Destroy(col);
+
         go.transform.localRotation = Quaternion.Euler(90f, 0f, 0f);
         go.transform.localPosition = Vector3.forward * 0.1f;
-        Vector3 ps = transform.lossyScale;
-        go.transform.localScale = new Vector3(0.5f * (1f / ps.x), 0.02f, 0.8f * (1f / ps.z));
+
         var mr = go.GetComponent<MeshRenderer>();
         mr.material = _haloMat;
         _halo = go.transform;
+
+        _halo.gameObject.SetActive(showBeams);
     }
 
     Transform MakeCylinder(string name, Transform parent, Vector3 localPos, Vector3 localScale, Material mat)
     {
         var go = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
         go.name = name; go.transform.SetParent(parent, false);
-        go.transform.localPosition = localPos; go.transform.localScale = localScale;
-        Destroy(go.GetComponent<Collider>());
+        go.transform.localPosition = localPos;
+        go.transform.localScale = localScale;
+
+        Collider col = go.GetComponent<Collider>();
+        if (col != null) Destroy(col);
+
         go.GetComponent<MeshRenderer>().material = mat;
         return go.transform;
     }
@@ -336,8 +385,6 @@ public class LEDLamp : MonoBehaviour
 
             foreach (var l in s_allLamps)
             {
-                // We keep the ApplyRandomImage logic within the scroll reset now
-                // but let's force a random shuffle here too for variety
                 l.ApplyRandomImage();
                 l.StartCoroutine(l.FlashWhite());
             }
@@ -352,24 +399,9 @@ public class LEDLamp : MonoBehaviour
     #endregion
 
     #region SHOW FRAMES (STATIC & STABLE)
-    IEnumerator FrameBreathe()
-    {
-        SetAll(baseColor, baseIntensity, 0.4f, 0.5f);
-        yield return null;
-    }
-
-    IEnumerator FrameWaveSweep()
-    {
-        SetAll(baseColor, baseIntensity, 0.6f, 0.5f);
-        yield return null;
-    }
-
-    IEnumerator FrameStrobe()
-    {
-        SetAll(ColWhite, baseIntensity, 0.9f, 0.9f);
-        yield return null;
-    }
-
+    IEnumerator FrameBreathe() { SetAll(baseColor, baseIntensity, 0.4f, 0.5f); yield return null; }
+    IEnumerator FrameWaveSweep() { SetAll(baseColor, baseIntensity, 0.6f, 0.5f); yield return null; }
+    IEnumerator FrameStrobe() { SetAll(ColWhite, baseIntensity, 0.9f, 0.9f); yield return null; }
     IEnumerator FrameRainbow()
     {
         float myOffset = lampIndex / (float)totalLamps;
@@ -378,31 +410,15 @@ public class LEDLamp : MonoBehaviour
         SetAll(col, baseIntensity, 0.5f, 0.6f);
         yield return null;
     }
-
-    IEnumerator FrameHeartbeat()
-    {
-        SetAll(ColViolet, baseIntensity, 0.7f, 0.8f);
-        yield return null;
-    }
-
+    IEnumerator FrameHeartbeat() { SetAll(ColViolet, baseIntensity, 0.7f, 0.8f); yield return null; }
     IEnumerator FrameLaserScan()
     {
         Color col = (((int)(s_time * 0.5f)) % 2 == 0) ? ColOrange : ColCyan;
         SetAll(col, baseIntensity, 0.85f, 0.7f);
         yield return null;
     }
-
-    IEnumerator FrameDataStream()
-    {
-        SetAll(new Color(0f, 1f, 0.5f), baseIntensity, 0.3f, 0.4f);
-        yield return null;
-    }
-
-    IEnumerator FrameEnergyCharge()
-    {
-        SetAll(ColWhite, baseIntensity, 0.8f, 0.9f);
-        yield return null;
-    }
+    IEnumerator FrameDataStream() { SetAll(new Color(0f, 1f, 0.5f), baseIntensity, 0.3f, 0.4f); yield return null; }
+    IEnumerator FrameEnergyCharge() { SetAll(ColWhite, baseIntensity, 0.8f, 0.9f); yield return null; }
     #endregion
 
     #region EVENTS & PARTICLES
@@ -418,22 +434,8 @@ public class LEDLamp : MonoBehaviour
         }
     }
 
-    IEnumerator EventScored()
-    {
-        _eventOverride = true;
-        SetAll(ColGold, baseIntensity * 1.5f, 1f, 1f);
-        yield return new WaitForSeconds(1.0f);
-        _eventOverride = false;
-    }
-
-    IEnumerator EventTackle()
-    {
-        _eventOverride = true;
-        SetAll(ColWhite, baseIntensity * 1.2f, 0.9f, 0.9f);
-        yield return new WaitForSeconds(0.5f);
-        _eventOverride = false;
-    }
-
+    IEnumerator EventScored() { _eventOverride = true; SetAll(ColGold, baseIntensity * 1.5f, 1f, 1f); yield return new WaitForSeconds(1.0f); _eventOverride = false; }
+    IEnumerator EventTackle() { _eventOverride = true; SetAll(ColWhite, baseIntensity * 1.2f, 0.9f, 0.9f); yield return new WaitForSeconds(0.5f); _eventOverride = false; }
     IEnumerator EventWon()
     {
         _eventOverride = true;
@@ -446,28 +448,14 @@ public class LEDLamp : MonoBehaviour
         }
         _eventOverride = false;
     }
-
-    IEnumerator EventLost()
-    {
-        _eventOverride = true;
-        SetAll(ColRed, baseIntensity, 0.5f, 0.4f);
-        yield return new WaitForSeconds(3.0f);
-        _eventOverride = false;
-    }
-
-    IEnumerator EventBallDrop()
-    {
-        _eventOverride = true;
-        SetAll(baseColor, baseIntensity, 0.5f, 0.6f);
-        yield return new WaitForSeconds(0.5f);
-        _eventOverride = false;
-    }
+    IEnumerator EventLost() { _eventOverride = true; SetAll(ColRed, baseIntensity, 0.5f, 0.4f); yield return new WaitForSeconds(3.0f); _eventOverride = false; }
+    IEnumerator EventBallDrop() { _eventOverride = true; SetAll(baseColor, baseIntensity, 0.5f, 0.6f); yield return new WaitForSeconds(0.5f); _eventOverride = false; }
 
     IEnumerator ParticleEmitter()
     {
         while (true)
         {
-            if (pointLight && pointLight.intensity > baseIntensity * 0.4f)
+            if (pointLight && pointLight.enabled && pointLight.intensity > baseIntensity * 0.4f)
                 SpawnBurst(1, pointLight.color, 0.1f, 0.5f);
             yield return new WaitForSeconds(0.15f);
         }
@@ -485,7 +473,8 @@ public class LEDLamp : MonoBehaviour
     void SpawnParticle(Vector3 pos, Vector3 vel, Color col, float life, float size)
     {
         var go = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-        Destroy(go.GetComponent<Collider>());
+        Collider colP = go.GetComponent<Collider>();
+        if (colP != null) Destroy(colP);
         go.transform.position = pos; go.transform.localScale = Vector3.one * size;
         var mat = MakeUnlitMat(col);
         go.GetComponent<MeshRenderer>().material = mat;
@@ -510,12 +499,11 @@ public class LEDLamp : MonoBehaviour
 
     void SetAll(Color col, float intensity, float beamAlpha, float haloAlpha)
     {
-        if (pointLight) { pointLight.color = col; pointLight.intensity = intensity; }
+        if (pointLight && usePointLight) { pointLight.color = col; pointLight.intensity = intensity; }
         if (_mat)
         {
             _mat.DisableKeyword("_EMISSION");
             _mat.SetColor("_EmissionColor", Color.black);
-
             if (_mat.HasProperty("_BaseColor")) _mat.SetColor("_BaseColor", Color.white);
             if (_mat.HasProperty("_Color")) _mat.SetColor("_Color", Color.white);
         }

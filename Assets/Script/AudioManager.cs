@@ -1,18 +1,15 @@
-using UnityEngine;
+﻿using UnityEngine;
 using System;
 
 public class AudioManager : MonoBehaviour
 {
-    // The Singleton instance
     public static AudioManager Instance { get; private set; }
 
     [Header("Audio Sources")]
-    [Tooltip("AudioSource dedicated to background music.")]
-    public AudioSource musicSource;
-    [Tooltip("AudioSource dedicated to sound effects.")]
-    public AudioSource sfxSource;
+    public AudioSource musicSource;   // Main BGM
+    public AudioSource sfxSource;     // SFX
+    public AudioSource layerSource;   // 🎵 NEW: Layered music
 
-    // A custom class to easily map string names to AudioClips in the Inspector
     [System.Serializable]
     public class Sound
     {
@@ -26,36 +23,18 @@ public class AudioManager : MonoBehaviour
 
     private void Awake()
     {
-        // Singleton pattern implementation
         if (Instance == null)
         {
             Instance = this;
-            DontDestroyOnLoad(gameObject); // Keeps the audio manager alive between scenes
+            DontDestroyOnLoad(gameObject);
         }
         else
         {
-            // Destroy any duplicates that might be created when reloading a scene
             Destroy(gameObject);
         }
     }
 
-    /// <summary>
-    /// Plays a sound effect once. Overlaps with currently playing SFX.
-    /// </summary>
-    public void PlaySFX(string soundName)
-    {
-        Sound s = Array.Find(sfxSounds, x => x.name == soundName);
-        if (s == null)
-        {
-            Debug.LogWarning("SFX: " + soundName + " not found!");
-            return;
-        }
-        sfxSource.PlayOneShot(s.clip);
-    }
-
-    /// <summary>
-    /// Plays background music. Replaces any currently playing music.
-    /// </summary>
+    // 🎵 MAIN MUSIC
     public void PlayMusic(string trackName)
     {
         Sound s = Array.Find(musicSounds, x => x.name == trackName);
@@ -69,17 +48,53 @@ public class AudioManager : MonoBehaviour
         musicSource.Play();
     }
 
-    /// <summary>
-    /// Toggles the background music on or off.
-    /// </summary>
+    // 🔊 SFX
+    public void PlaySFX(string soundName)
+    {
+        Sound s = Array.Find(sfxSounds, x => x.name == soundName);
+        if (s == null)
+        {
+            Debug.LogWarning("SFX: " + soundName + " not found!");
+            return;
+        }
+
+        sfxSource.PlayOneShot(s.clip);
+    }
+
+    // 🎵 NEW: PLAY LAYER MUSIC
+    public void PlayMusicLayer(string name)
+    {
+        Sound s = Array.Find(musicSounds, x => x.name == name);
+        if (s == null)
+        {
+            Debug.LogWarning("Layer Music not found: " + name);
+            return;
+        }
+
+        layerSource.clip = s.clip;
+        layerSource.Play();
+    }
+
+    // 🎵 STOP LAYER ONLY
+    public void StopMusicLayer()
+    {
+        if (layerSource.isPlaying)
+            layerSource.Stop();
+    }
+
+    // 🎵 OPTIONAL: STOP ALL MUSIC
+    public void StopAllMusic()
+    {
+        musicSource.Stop();
+        layerSource.Stop();
+    }
+
     public void ToggleMusic()
     {
         musicSource.mute = !musicSource.mute;
+        layerSource.mute = !layerSource.mute;
     }
 
-    /// <summary>
-    /// Toggles all sound effects on or off.
-    /// </summary>
     public void ToggleSFX()
     {
         sfxSource.mute = !sfxSource.mute;

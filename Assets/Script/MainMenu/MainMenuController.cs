@@ -12,7 +12,7 @@ public class MainMenuController : MonoBehaviour
     public string gameSceneName = "LevelOne";
 
     [Header("Title")]
-    public string gameTitle    = "CORE: LAST CHARGE";
+    public string gameTitle = "CORE: LAST CHARGE";
     public string gameSubtitle = "SEASON I";
 
     [Header("Font")]
@@ -30,15 +30,15 @@ public class MainMenuController : MonoBehaviour
     public float runYPosition = 0f;
 
     [Header("Colours")]
-    public Color colBg          = new Color(0.05f, 0.06f, 0.12f, 1f);
-    public Color colAccentA     = new Color(0.00f, 0.88f, 1.00f, 1f);
-    public Color colAccentB     = new Color(0.55f, 0.10f, 1.00f, 1f);
-    public Color colAccentC     = new Color(1.00f, 0.38f, 0.08f, 1f);
-    public Color colTitleTop    = new Color(1.00f, 1.00f, 1.00f, 1f);
-    public Color colTitleBot    = new Color(0.55f, 0.88f, 1.00f, 1f);
-    public Color colButtonFace  = new Color(0.04f, 0.11f, 0.26f, 0.95f);
-    public Color colButtonBorder= new Color(0.00f, 0.88f, 1.00f, 0.70f);
-    public Color colButtonText  = new Color(1.00f, 1.00f, 1.00f, 1.00f);
+    public Color colBg = new Color(0.05f, 0.06f, 0.12f, 1f);
+    public Color colAccentA = new Color(0.00f, 0.88f, 1.00f, 1f);
+    public Color colAccentB = new Color(0.55f, 0.10f, 1.00f, 1f);
+    public Color colAccentC = new Color(1.00f, 0.38f, 0.08f, 1f);
+    public Color colTitleTop = new Color(1.00f, 1.00f, 1.00f, 1f);
+    public Color colTitleBot = new Color(0.55f, 0.88f, 1.00f, 1f);
+    public Color colButtonFace = new Color(0.04f, 0.11f, 0.26f, 0.95f);
+    public Color colButtonBorder = new Color(0.00f, 0.88f, 1.00f, 0.70f);
+    public Color colButtonText = new Color(1.00f, 1.00f, 1.00f, 1.00f);
 
     [Header("Audio")]
     public AudioClip sfxHover;
@@ -52,27 +52,28 @@ public class MainMenuController : MonoBehaviour
         new Color(1.00f, 0.88f, 0.15f, 1f),
     };
 
-    private Canvas          _canvas;
-    private AudioSource     _sfx;
-    private bool            _transitioning;
+    private Canvas _canvas;
+    private AudioSource _sfx;
+    private bool _transitioning;
 
     // Panels
-    private CanvasGroup     _mainPanel;
-    private CanvasGroup     _playerSelectPanel;
-    private CanvasGroup     _howToPlayPanel;
-    private CanvasGroup     _creditsPanel;
+    private CanvasGroup _mainPanel;
+    private CanvasGroup _playerSelectPanel;
+    private CanvasGroup _howToPlayPanel;
+    private CanvasGroup _creditsPanel;
 
     // Title refs
     private TextMeshProUGUI _titleTMP;
     private TextMeshProUGUI _subtitleTMP;
-    private Image           _flashOverlay;
-    private RectTransform   _titleContainer;
-    private CanvasGroup     _titleCG;
+    private Image _flashOverlay;
+    private RectTransform _titleContainer;
+    private CanvasGroup _titleCG;
 
     // BG player data
-    private Transform[]     _bgPlayers = new Transform[4];
-    private int             _ballCarrier = 0;
-    private bool            _runningRight = true;
+    private Transform[] _bgPlayers = new Transform[4];
+    private Animator[] _bgAnimators = new Animator[4];
+    private int _ballCarrier = 0;
+    private bool _runningRight = true;
 
     void Awake()
     {
@@ -85,6 +86,8 @@ public class MainMenuController : MonoBehaviour
         BuildAll();
         StartCoroutine(IntroSequence());
         StartCoroutine(LoopBGPlayers());
+        // ✨ NEW: Starts the continuous title animations
+        StartCoroutine(AnimateTitleFX());
     }
 
     #region BUILD
@@ -108,6 +111,9 @@ public class MainMenuController : MonoBehaviour
             _bgPlayers[3] = player4;
         }
 
+        // Cache components and disable physics on UI runners
+        RefreshAnimatorCache();
+
         //var grad = Img("BottomGrad", _canvas.transform, new Color(0f, 0f, 0f, 0.5f));
         //grad.rectTransform.anchorMin = Vector2.zero;
         //grad.rectTransform.anchorMax = new Vector2(1f, 0.25f);
@@ -116,32 +122,46 @@ public class MainMenuController : MonoBehaviour
 
         BuildTitle();
 
-        _mainPanel         = BuildMainPanel();
+        _mainPanel = BuildMainPanel();
         _playerSelectPanel = BuildPlayerSelectPanel();
-        _howToPlayPanel    = BuildHowToPlayPanel();
-        _creditsPanel      = BuildCreditsPanel();
+        _howToPlayPanel = BuildHowToPlayPanel();
+        _creditsPanel = BuildCreditsPanel();
 
         _flashOverlay = Img("Flash", _canvas.transform, new Color(colAccentA.r, colAccentA.g, colAccentA.b, 0f));
         Stretch(_flashOverlay.rectTransform);
         _flashOverlay.raycastTarget = false;
 
-        SetPanelVisible(_mainPanel,         true,  instant: true);
+        SetPanelVisible(_mainPanel, true, instant: true);
         SetPanelVisible(_playerSelectPanel, false, instant: true);
-        SetPanelVisible(_howToPlayPanel,    false, instant: true);
-        SetPanelVisible(_creditsPanel,      false, instant: true);
+        SetPanelVisible(_howToPlayPanel, false, instant: true);
+        SetPanelVisible(_creditsPanel, false, instant: true);
+    }
+
+    // Helper to keep animator refs in sync with shuffled array
+    void RefreshAnimatorCache()
+    {
+        for (int i = 0; i < 4; i++)
+        {
+            if (_bgPlayers[i] != null)
+            {
+                _bgAnimators[i] = _bgPlayers[i].GetComponentInChildren<Animator>();
+                var rb = _bgPlayers[i].GetComponent<Rigidbody>();
+                if (rb != null) rb.isKinematic = true;
+            }
+        }
     }
 
     Canvas MakeCanvas()
     {
         var go = new GameObject("MenuCanvas");
         go.transform.SetParent(transform, false);
-        var c  = go.AddComponent<Canvas>();
-        c.renderMode   = RenderMode.ScreenSpaceOverlay;
+        var c = go.AddComponent<Canvas>();
+        c.renderMode = RenderMode.ScreenSpaceOverlay;
         c.sortingOrder = 99;
         var cs = go.AddComponent<CanvasScaler>();
-        cs.uiScaleMode         = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+        cs.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
         cs.referenceResolution = new Vector2(1920, 1080);
-        cs.matchWidthOrHeight  = 0.5f;
+        cs.matchWidthOrHeight = 0.5f;
         go.AddComponent<GraphicRaycaster>();
         if (!FindAnyObjectByType<EventSystem>())
         {
@@ -157,17 +177,17 @@ public class MainMenuController : MonoBehaviour
         _titleContainer = MakeRect("TitleArea", _canvas.transform);
         _titleContainer.anchorMin = new Vector2(0f, 1f);
         _titleContainer.anchorMax = new Vector2(1f, 1f);
-        _titleContainer.pivot     = new Vector2(0.5f, 1f);
+        _titleContainer.pivot = new Vector2(0.5f, 1f);
         _titleContainer.sizeDelta = new Vector2(0f, 180f);
         _titleContainer.anchoredPosition = Vector2.zero;
         _titleCG = _titleContainer.gameObject.AddComponent<CanvasGroup>();
 
         _titleTMP = MakeTMP("Title", _titleContainer, gameTitle);
         ApplyFont(_titleTMP);
-        _titleTMP.fontSize   = 82f;
-        _titleTMP.fontStyle  = FontStyles.Bold | FontStyles.UpperCase;
-        _titleTMP.alignment  = TextAlignmentOptions.Center;
-        _titleTMP.color      = colTitleTop;
+        _titleTMP.fontSize = 82f;
+        _titleTMP.fontStyle = FontStyles.Bold | FontStyles.UpperCase;
+        _titleTMP.alignment = TextAlignmentOptions.Center;
+        _titleTMP.color = colTitleTop;
         _titleTMP.enableVertexGradient = true;
         _titleTMP.colorGradient = new VertexGradient(colTitleTop, colTitleTop, colTitleBot, colTitleBot);
         _titleTMP.rectTransform.anchorMin = Vector2.zero;
@@ -185,9 +205,9 @@ public class MainMenuController : MonoBehaviour
 
         _subtitleTMP = MakeTMP("Sub", _titleContainer, "");
         ApplyFont(_subtitleTMP);
-        _subtitleTMP.fontSize  = 15f;
+        _subtitleTMP.fontSize = 15f;
         _subtitleTMP.alignment = TextAlignmentOptions.Center;
-        _subtitleTMP.color     = new Color(colAccentA.r, colAccentA.g, colAccentA.b, 0.75f);
+        _subtitleTMP.color = new Color(colAccentA.r, colAccentA.g, colAccentA.b, 0.75f);
         _subtitleTMP.characterSpacing = 8f;
         _subtitleTMP.rectTransform.anchorMin = new Vector2(0f, 0f);
         _subtitleTMP.rectTransform.anchorMax = new Vector2(1f, 0f);
@@ -203,10 +223,10 @@ public class MainMenuController : MonoBehaviour
         float startY = -80f;
         float spacing = 80f;
 
-        MakeButton(panel, "START",      startY + spacing * 0,  colAccentA, () => ShowPlayerSelect());
-        MakeButton(panel, "HOW TO PLAY",startY + spacing * -1, colAccentA, () => ShowPanel(_howToPlayPanel));
-        MakeButton(panel, "CREDITS",    startY + spacing * -2, colAccentA, () => ShowPanel(_creditsPanel));
-        MakeButton(panel, "QUIT",       startY + spacing * -3, new Color(1f, 0.35f, 0.35f, 0.8f), QuitGame);
+        MakeButton(panel, "START", startY + spacing * 0, colAccentA, () => ShowPlayerSelect());
+        MakeButton(panel, "HOW TO PLAY", startY + spacing * -1, colAccentA, () => ShowPanel(_howToPlayPanel));
+        MakeButton(panel, "CREDITS", startY + spacing * -2, colAccentA, () => ShowPanel(_creditsPanel));
+        MakeButton(panel, "QUIT", startY + spacing * -3, new Color(1f, 0.35f, 0.35f, 0.8f), QuitGame);
 
         return panel.GetComponent<CanvasGroup>();
     }
@@ -215,26 +235,28 @@ public class MainMenuController : MonoBehaviour
     {
         var panel = MakePanel("PlayerSelectPanel");
 
-        var hdr = MakeTMP("Hdr", panel.transform, "SELECT PLAYERS");
-        ApplyFont(hdr);
-        hdr.fontSize  = 28f;
-        hdr.fontStyle = FontStyles.Bold;
-        hdr.alignment = TextAlignmentOptions.Center;
-        hdr.color     = new Color(colAccentA.r, colAccentA.g, colAccentA.b, 0.9f);
-        hdr.rectTransform.anchorMin = hdr.rectTransform.anchorMax = new Vector2(0.5f, 0.5f);
-        hdr.rectTransform.pivot     = new Vector2(0.5f, 0.5f);
-        hdr.rectTransform.sizeDelta = new Vector2(500f, 50f);
-        hdr.rectTransform.anchoredPosition = new Vector2(0f, 80f);
-        hdr.raycastTarget = false;
-
-        float startY  = -20f;
+        float startY = -20f;
         float spacing = 80f;
 
-        MakeButton(panel, "2  PLAYERS", startY + spacing * 1,  colAccentA, () => LaunchGame(2));
-        MakeButton(panel, "3  PLAYERS", startY + spacing * 0,  colAccentA, () => LaunchGame(3));
+        // ✅ Buttons created first (at the back)
+        MakeButton(panel, "2  PLAYERS", startY + spacing * 1, colAccentA, () => LaunchGame(2));
+        MakeButton(panel, "3  PLAYERS", startY + spacing * 0, colAccentA, () => LaunchGame(3));
         MakeButton(panel, "4  PLAYERS", startY + spacing * -1, colAccentA, () => LaunchGame(4));
 
         MakeButton(panel, "← BACK", startY + spacing * -2.5f, new Color(0.5f, 0.5f, 0.5f, 0.6f), () => ShowPanel(_mainPanel));
+
+        // ✨ FIX: Created Header text LAST and adjusted position so it's in front of boxes
+        var hdr = MakeTMP("Hdr", panel.transform, "SELECT PLAYERS");
+        ApplyFont(hdr);
+        hdr.fontSize = 28f;
+        hdr.fontStyle = FontStyles.Bold;
+        hdr.alignment = TextAlignmentOptions.Center;
+        hdr.color = new Color(colAccentA.r, colAccentA.g, colAccentA.b, 0.9f);
+        hdr.rectTransform.anchorMin = hdr.rectTransform.anchorMax = new Vector2(0.5f, 0.5f);
+        hdr.rectTransform.pivot = new Vector2(0.5f, 0.5f);
+        hdr.rectTransform.sizeDelta = new Vector2(500f, 50f);
+        hdr.rectTransform.anchoredPosition = new Vector2(0f, 150f);
+        hdr.raycastTarget = false;
 
         return panel.GetComponent<CanvasGroup>();
     }
@@ -245,12 +267,12 @@ public class MainMenuController : MonoBehaviour
 
         var title = MakeTMP("Title", panel.transform, "HOW TO PLAY");
         ApplyFont(title);
-        title.fontSize  = 32f;
+        title.fontSize = 32f;
         title.fontStyle = FontStyles.Bold;
         title.alignment = TextAlignmentOptions.Center;
-        title.color     = colAccentA;
+        title.color = colAccentA;
         title.rectTransform.anchorMin = title.rectTransform.anchorMax = new Vector2(0.5f, 0.5f);
-        title.rectTransform.pivot     = new Vector2(0.5f, 0.5f);
+        title.rectTransform.pivot = new Vector2(0.5f, 0.5f);
         title.rectTransform.sizeDelta = new Vector2(700f, 50f);
         title.rectTransform.anchoredPosition = new Vector2(0f, 160f);
         title.raycastTarget = false;
@@ -271,13 +293,13 @@ public class MainMenuController : MonoBehaviour
 
         for (int i = 0; i < lines.Length; i++)
         {
-            var line = MakeTMP("Line"+i, panel.transform, lines[i]);
+            var line = MakeTMP("Line" + i, panel.transform, lines[i]);
             ApplyFont(line);
-            line.fontSize  = 18f;
+            line.fontSize = 18f;
             line.alignment = TextAlignmentOptions.Center;
-            line.color     = lineColors[i];
+            line.color = lineColors[i];
             line.rectTransform.anchorMin = line.rectTransform.anchorMax = new Vector2(0.5f, 0.5f);
-            line.rectTransform.pivot     = new Vector2(0.5f, 0.5f);
+            line.rectTransform.pivot = new Vector2(0.5f, 0.5f);
             line.rectTransform.sizeDelta = new Vector2(800f, 40f);
             line.rectTransform.anchoredPosition = new Vector2(0f, 80f - i * 55f);
             line.raycastTarget = false;
@@ -294,12 +316,12 @@ public class MainMenuController : MonoBehaviour
 
         var title = MakeTMP("Title", panel.transform, "CREDITS");
         ApplyFont(title);
-        title.fontSize  = 32f;
+        title.fontSize = 32f;
         title.fontStyle = FontStyles.Bold;
         title.alignment = TextAlignmentOptions.Center;
-        title.color     = colAccentA;
+        title.color = colAccentA;
         title.rectTransform.anchorMin = title.rectTransform.anchorMax = new Vector2(0.5f, 0.5f);
-        title.rectTransform.pivot     = new Vector2(0.5f, 0.5f);
+        title.rectTransform.pivot = new Vector2(0.5f, 0.5f);
         title.rectTransform.sizeDelta = new Vector2(600f, 50f);
         title.rectTransform.anchoredPosition = new Vector2(0f, 160f);
         title.raycastTarget = false;
@@ -318,17 +340,17 @@ public class MainMenuController : MonoBehaviour
         for (int i = 0; i < credits.Length; i++)
         {
             bool isHeader = (i % 3 == 0 && credits[i] != "");
-            var line = MakeTMP("Credit"+i, panel.transform, credits[i]);
+            var line = MakeTMP("Credit" + i, panel.transform, credits[i]);
             ApplyFont(line);
-            line.fontSize  = isHeader ? 13f : 20f;
+            line.fontSize = isHeader ? 13f : 20f;
             line.fontStyle = isHeader ? FontStyles.Normal : FontStyles.Bold;
             line.alignment = TextAlignmentOptions.Center;
-            line.color     = isHeader
+            line.color = isHeader
                 ? new Color(colAccentA.r, colAccentA.g, colAccentA.b, 0.6f)
                 : new Color(1f, 1f, 1f, 0.9f);
             line.characterSpacing = isHeader ? 5f : 0f;
             line.rectTransform.anchorMin = line.rectTransform.anchorMax = new Vector2(0.5f, 0.5f);
-            line.rectTransform.pivot     = new Vector2(0.5f, 0.5f);
+            line.rectTransform.pivot = new Vector2(0.5f, 0.5f);
             line.rectTransform.sizeDelta = new Vector2(600f, 35f);
             line.rectTransform.anchoredPosition = new Vector2(0f, 80f - i * 38f);
             line.raycastTarget = false;
@@ -375,17 +397,17 @@ public class MainMenuController : MonoBehaviour
         var acc = Img("Acc", root.transform, accentColor);
         acc.rectTransform.anchorMin = new Vector2(0f, 0.5f);
         acc.rectTransform.anchorMax = new Vector2(0f, 0.5f);
-        acc.rectTransform.pivot     = new Vector2(0f, 0.5f);
+        acc.rectTransform.pivot = new Vector2(0f, 0.5f);
         acc.rectTransform.sizeDelta = new Vector2(4f, 32f);
         acc.rectTransform.anchoredPosition = new Vector2(2f, 0f);
         acc.raycastTarget = false;
 
         var lbl = MakeTMP("Label", root.transform, label);
         ApplyFont(lbl);
-        lbl.fontSize  = 22f;
+        lbl.fontSize = 22f;
         lbl.fontStyle = FontStyles.Bold;
         lbl.alignment = TextAlignmentOptions.MidlineLeft;
-        lbl.color     = colButtonText;
+        lbl.color = colButtonText;
         lbl.characterSpacing = 3f;
         lbl.rectTransform.anchorMin = Vector2.zero;
         lbl.rectTransform.anchorMax = Vector2.one;
@@ -399,7 +421,7 @@ public class MainMenuController : MonoBehaviour
 
         var btn = root.AddComponent<Button>();
         btn.targetGraphic = hit;
-        btn.transition    = Selectable.Transition.None;
+        btn.transition = Selectable.Transition.None;
         btn.onClick.AddListener(() =>
         {
             PlaySfx(sfxClick);
@@ -424,7 +446,7 @@ public class MainMenuController : MonoBehaviour
 
         for (int i = 0; i < 4; i++)
         {
-            var root = MakeRect("BGP"+i, parent);
+            var root = MakeRect("BGP" + i, parent);
             root.anchorMin = root.anchorMax = root.pivot = new Vector2(0f, 0.5f);
             root.anchoredPosition = new Vector2(-300f - i * 150f, -200f);
             root.sizeDelta = Vector2.zero;
@@ -433,13 +455,13 @@ public class MainMenuController : MonoBehaviour
 
             var body = Img("Body", root, new Color(col.r, col.g, col.b, 0.55f));
             body.rectTransform.anchorMin = body.rectTransform.anchorMax = new Vector2(0.5f, 0f);
-            body.rectTransform.pivot     = new Vector2(0.5f, 0f);
+            body.rectTransform.pivot = new Vector2(0.5f, 0f);
             body.rectTransform.sizeDelta = new Vector2(44f, 68f);
             body.rectTransform.anchoredPosition = Vector2.zero;
 
             var head = Img("Head", root, new Color(col.r, col.g, col.b, 0.55f));
             head.rectTransform.anchorMin = head.rectTransform.anchorMax = new Vector2(0.5f, 0f);
-            head.rectTransform.pivot     = new Vector2(0.5f, 0f);
+            head.rectTransform.pivot = new Vector2(0.5f, 0f);
             head.rectTransform.sizeDelta = new Vector2(34f, 34f);
             head.rectTransform.anchoredPosition = new Vector2(0f, 72f);
 
@@ -449,77 +471,141 @@ public class MainMenuController : MonoBehaviour
 
     #endregion
 
-    #region BG PLAYER LOOP
-    IEnumerator LoopBGPlayers()
-{
-    // ✅ THESE VALUES ARE PERFECT FOR YOUR CAMERA
-    float screenLeftEdge  = -22f;
-    float screenRightEdge =  22f;
-    float bobSpeed        = 9f;
-
-    ResetPositions(_runningRight, screenLeftEdge, screenRightEdge, _ballCarrier);
-
-    while (true)
+    #region ANIMATIONS
+    // ✨ Coroutine: Pulse Title and wave Subtitle
+    IEnumerator AnimateTitleFX()
     {
-        float dir = _runningRight ? 1f : -1f;
-        bool anyOnScreen = false;
+        float timer = 0f;
+        while (true)
+        {
+            timer += Time.deltaTime;
 
+            // Pulse scale for the main Title
+            float pulse = 1f + Mathf.Sin(timer * 2.5f) * 0.03f;
+            if (_titleTMP != null) _titleTMP.rectTransform.localScale = new Vector3(pulse, pulse, 1f);
+
+            // Floating wave for the Subtitle
+            float wave = Mathf.Sin(timer * 3f) * 5f;
+            if (_subtitleTMP != null) _subtitleTMP.rectTransform.anchoredPosition = new Vector2(0, 10f + wave);
+
+            // Subtle color glitch flicker
+            if (Random.value > 0.985f && _titleTMP != null)
+            {
+                _titleTMP.color = colAccentA;
+                yield return new WaitForSeconds(0.06f);
+                _titleTMP.color = colTitleTop;
+            }
+
+            yield return null;
+        }
+    }
+    #endregion
+
+    #region BG PLAYER LOOP
+
+    void ShufflePlayers()
+    {
+        // Shuffle the Transform array
+        for (int i = 0; i < _bgPlayers.Length; i++)
+        {
+            int rnd = Random.Range(0, _bgPlayers.Length);
+            Transform temp = _bgPlayers[rnd];
+            _bgPlayers[rnd] = _bgPlayers[i];
+            _bgPlayers[i] = temp;
+        }
+        // Update the Animator cache to match the new order
+        RefreshAnimatorCache();
+    }
+
+    IEnumerator LoopBGPlayers()
+    {
+        float screenLeftEdge = -22f;
+        float screenRightEdge = 22f;
+        float bobSpeed = 9f;
+
+        // Shuffle initial sequence
+        ShufflePlayers();
+        _ballCarrier = 0;
+        ResetPositions(_runningRight, screenLeftEdge, screenRightEdge, _ballCarrier);
+
+        while (true)
+        {
+            float dir = _runningRight ? 1f : -1f;
+            bool anyOnScreen = false;
+
+            for (int i = 0; i < 4; i++)
+            {
+                if (_bgPlayers[i] == null) continue;
+
+                float newX = _bgPlayers[i].position.x + dir * runSpeed * Time.deltaTime;
+                float bob = Mathf.Sin(Time.time * bobSpeed + i * 1.4f) * 0.25f;
+
+                // Move them manually
+                _bgPlayers[i].position = new Vector3(newX, runYPosition + bob, 0);
+
+                // ✅ Turning logic: Rotate the model to face the direction
+                _bgPlayers[i].rotation = Quaternion.Euler(0, _runningRight ? 90f : 270f, 0);
+
+                // ✅ Animation logic: Play "isRunning" if animator exists
+                if (_bgAnimators[i] != null)
+                {
+                    _bgAnimators[i].SetBool("isRunning", true);
+                    _bgAnimators[i].SetFloat("Speed", runSpeed / 14f);
+                }
+
+                if (_runningRight && newX < screenRightEdge) anyOnScreen = true;
+                if (!_runningRight && newX > screenLeftEdge) anyOnScreen = true;
+
+                // ✅ Energy Ball logic: Attached to index 0 (The Leader)
+                if (i == 0 && energyBall != null)
+                {
+                    // Float in front of the hand/chest area
+                    float ballLeadDistance = 1.1f;
+                    Vector3 ballOffset = new Vector3(dir * ballLeadDistance, 0.45f, 0);
+
+                    energyBall.position = _bgPlayers[i].position + ballOffset;
+                    // Tight subtle float effect
+                    energyBall.position += new Vector3(0, Mathf.Sin(Time.time * 6f) * 0.12f, 0);
+                }
+            }
+
+            if (!anyOnScreen)
+            {
+                // All players out of view
+                yield return new WaitForSeconds(0.4f);
+
+                _runningRight = !_runningRight;
+
+                // ✅ Shuffle happens here off-screen
+                ShufflePlayers();
+
+                // Reset leader index
+                _ballCarrier = 0;
+                ResetPositions(_runningRight, screenLeftEdge, screenRightEdge, _ballCarrier);
+
+                yield return new WaitForSeconds(0.2f);
+            }
+
+            yield return null;
+        }
+    }
+
+    void ResetPositions(bool goingRight, float leftEdge, float rightEdge, int ballHolder)
+    {
         for (int i = 0; i < 4; i++)
         {
             if (_bgPlayers[i] == null) continue;
 
-            float newX = _bgPlayers[i].position.x + dir * runSpeed * Time.deltaTime;
-            float bob  = Mathf.Sin(Time.time * bobSpeed + i * 1.4f) * 0.25f;
+            // First player in array (index 0) is the leader
+            float leaderOffset = (float)i;
+            float stagger = leaderOffset * -3.8f;
 
-            _bgPlayers[i].position = new Vector3(newX, runYPosition + bob, 0);
+            float startX = goingRight ? leftEdge + stagger : rightEdge - stagger;
 
-            // Players automatically face direction
-            _bgPlayers[i].localScale = new Vector3(_runningRight ? 1f : -1f, 1f, 1f);
-
-            // Check if any player is still on screen
-            if (_runningRight  && newX < screenRightEdge) anyOnScreen = true;
-            if (!_runningRight && newX > screenLeftEdge)  anyOnScreen = true;
-
-            // Ball follows carrier
-            if (i == _ballCarrier && energyBall != null)
-            {
-                energyBall.position = _bgPlayers[i].position + new Vector3(0, 2.8f, 0);
-                energyBall.position += new Vector3(0, Mathf.Sin(Time.time * 6f) * 0.4f, 0);
-            }
+            // Set starting position behind the edge
+            _bgPlayers[i].position = new Vector3(startX, runYPosition, 0);
         }
-
-        // All players off screen: flip direction
-        if (!anyOnScreen)
-        {
-            _runningRight  = !_runningRight;
-            _ballCarrier  = (_ballCarrier + 1) % 4;
-            ResetPositions(_runningRight, screenLeftEdge, screenRightEdge, _ballCarrier);
-
-            yield return new WaitForSeconds(0.6f);
-        }
-
-        yield return null;
     }
-}
-
-void ResetPositions(bool goingRight, float leftEdge, float rightEdge, int ballHolder)
-{
-    for (int i = 0; i < 4; i++)
-    {
-        if (_bgPlayers[i] == null) continue;
-
-        // Ball holder runs out front, others follow behind
-        float leaderOffset = i == ballHolder ? 0f : 1f + (i < ballHolder ? i : i - 1) * 1f;
-        float stagger      = leaderOffset * -3.5f;
-
-        float startX = goingRight
-            ? leftEdge + stagger
-            : rightEdge - stagger;
-
-        // ✅ Place them on your grid level not on the floor
-        _bgPlayers[i].position = new Vector3(startX, 0.1f, 0);
-    }
-}
     #endregion
 
     #region PANEL NAVIGATION
@@ -531,10 +617,10 @@ void ResetPositions(bool goingRight, float leftEdge, float rightEdge, int ballHo
     void ShowPanel(CanvasGroup target)
     {
         CanvasGroup current = null;
-        if (_mainPanel.alpha         > 0.5f) current = _mainPanel;
+        if (_mainPanel.alpha > 0.5f) current = _mainPanel;
         if (_playerSelectPanel.alpha > 0.5f) current = _playerSelectPanel;
-        if (_howToPlayPanel.alpha    > 0.5f) current = _howToPlayPanel;
-        if (_creditsPanel.alpha      > 0.5f) current = _creditsPanel;
+        if (_howToPlayPanel.alpha > 0.5f) current = _howToPlayPanel;
+        if (_creditsPanel.alpha > 0.5f) current = _creditsPanel;
 
         if (current != null && current != target)
             StartCoroutine(SwitchPanel(current, target));
@@ -550,7 +636,7 @@ void ResetPositions(bool goingRight, float leftEdge, float rightEdge, int ballHo
 
     IEnumerator FadeInPanel(CanvasGroup cg)
     {
-        cg.interactable   = false;
+        cg.interactable = false;
         cg.blocksRaycasts = false;
         float t = 0f;
         while (t < 0.25f)
@@ -559,14 +645,14 @@ void ResetPositions(bool goingRight, float leftEdge, float rightEdge, int ballHo
             cg.alpha = Mathf.Clamp01(t / 0.25f);
             yield return null;
         }
-        cg.alpha          = 1f;
-        cg.interactable   = true;
+        cg.alpha = 1f;
+        cg.interactable = true;
         cg.blocksRaycasts = true;
     }
 
     IEnumerator FadeOutPanel(CanvasGroup cg)
     {
-        cg.interactable   = false;
+        cg.interactable = false;
         cg.blocksRaycasts = false;
         float t = 0f;
         while (t < 0.2f)
@@ -580,11 +666,10 @@ void ResetPositions(bool goingRight, float leftEdge, float rightEdge, int ballHo
 
     void SetPanelVisible(CanvasGroup cg, bool visible, bool instant = false)
     {
-        cg.alpha          = visible ? 1f : 0f;
-        cg.interactable   = visible;
+        cg.alpha = visible ? 1f : 0f;
+        cg.interactable = visible;
         cg.blocksRaycasts = visible;
     }
-
     #endregion
 
     #region GAME ACTIONS
@@ -599,9 +684,7 @@ void ResetPositions(bool goingRight, float leftEdge, float rightEdge, int ballHo
 
     IEnumerator LaunchSeq()
     {
-        // ✨ Bonus: Make everyone sprint when you click play
         runSpeed *= 5f;
-
         Color c = new Color(colAccentA.r, colAccentA.g, colAccentA.b, 0.5f);
         _flashOverlay.color = c;
         float t = 0f;
@@ -619,11 +702,11 @@ void ResetPositions(bool goingRight, float leftEdge, float rightEdge, int ballHo
 
     void QuitGame()
     {
-        #if UNITY_EDITOR
+#if UNITY_EDITOR
         UnityEditor.EditorApplication.isPlaying = false;
-        #else
+#else
         Application.Quit();
-        #endif
+#endif
     }
 
     IEnumerator FadeMusic()
@@ -639,16 +722,13 @@ void ResetPositions(bool goingRight, float leftEdge, float rightEdge, int ballHo
         musicSource.Stop();
         musicSource.volume = v;
     }
-
     #endregion
 
     #region INTRO
     IEnumerator IntroSequence()
     {
         if (_titleCG) _titleCG.alpha = 0f;
-
         yield return new WaitForSeconds(0.3f);
-
         float t = 0f;
         while (t < 0.6f)
         {
@@ -657,102 +737,76 @@ void ResetPositions(bool goingRight, float leftEdge, float rightEdge, int ballHo
             yield return null;
         }
         if (_titleCG) _titleCG.alpha = 1f;
-
         _subtitleTMP.text = "";
-        foreach (char c in gameSubtitle)
+        foreach (char ch in gameSubtitle)
         {
-            _subtitleTMP.text += c;
+            _subtitleTMP.text += ch;
             yield return new WaitForSeconds(0.05f);
         }
     }
-
     #endregion
 
     #region BUTTON HOVER
-    IEnumerator BtnHover(RectTransform rt, Image face, Image border,
-        TextMeshProUGUI lbl, Color accentColor, bool enter)
+    IEnumerator BtnHover(RectTransform rt, Image face, Image border, TextMeshProUGUI lbl, Color accentColor, bool enter)
     {
         float dur = 0.1f, el = 0f;
-        float   targetScale = enter ? 1.04f : 1f;
-        Color   targetFace  = enter
-            ? new Color(colButtonFace.r + 0.08f, colButtonFace.g + 0.10f,
-                        colButtonFace.b + 0.16f, colButtonFace.a)
-            : colButtonFace;
-        Color   targetBorder = enter
-            ? new Color(accentColor.r, accentColor.g, accentColor.b, 1f)
-            : new Color(accentColor.r, accentColor.g, accentColor.b, 0.7f);
-        Color   targetLbl   = enter ? accentColor : colButtonText;
+        float targetScale = enter ? 1.04f : 1f;
+        Color targetFace = enter ? new Color(colButtonFace.r + 0.08f, colButtonFace.g + 0.10f, colButtonFace.b + 0.16f, colButtonFace.a) : colButtonFace;
+        Color targetBorder = enter ? new Color(accentColor.r, accentColor.g, accentColor.b, 1f) : new Color(accentColor.r, accentColor.g, accentColor.b, 0.7f);
+        Color targetLbl = enter ? accentColor : colButtonText;
 
         Vector3 startScale = rt.localScale;
-        Color   startFace  = face.color;
-        Color   startBord  = border.color;
-        Color   startLbl   = lbl.color;
+        Color startFace = face.color;
+        Color startBord = border.color;
+        Color startLbl = lbl.color;
 
         while (el < dur)
         {
             el += Time.deltaTime;
             float p = 1f - Mathf.Pow(1f - Mathf.Clamp01(el / dur), 3f);
-            rt.localScale  = Vector3.Lerp(startScale, Vector3.one * targetScale, p);
-            face.color     = Color.Lerp(startFace,  targetFace,   p);
-            border.color   = Color.Lerp(startBord,  targetBorder, p);
-            lbl.color      = Color.Lerp(startLbl,   targetLbl,    p);
+            rt.localScale = Vector3.Lerp(startScale, Vector3.one * targetScale, p);
+            face.color = Color.Lerp(startFace, targetFace, p);
+            border.color = Color.Lerp(startBord, targetBorder, p);
+            lbl.color = Color.Lerp(startLbl, targetLbl, p);
             yield return null;
         }
     }
-
     #endregion
 
     #region UTILITY
     void ApplyFont(TextMeshProUGUI tmp)
     {
-        if (audiowideFont != null) tmp.font = audiowideFont;
+        if (audiowideFont != null)
+        {
+            tmp.font = audiowideFont;
+            // Update materials to ensure they use the sharpest atlas settings
+            tmp.UpdateFontAsset();
+        }
     }
 
-    Image Img(string n, Transform p, Color c)
-    {
-        var go  = new GameObject(n);
-        go.transform.SetParent(p, false);
-        var img = go.AddComponent<Image>();
-        img.color = c;
-        return img;
-    }
-
-    RectTransform MakeRect(string n, Transform p)
-    {
-        var go = new GameObject(n);
-        go.transform.SetParent(p, false);
-        return go.AddComponent<RectTransform>();
-    }
+    Image Img(string n, Transform p, Color c) { var go = new GameObject(n); go.transform.SetParent(p, false); var img = go.AddComponent<Image>(); img.color = c; return img; }
+    RectTransform MakeRect(string n, Transform p) { var go = new GameObject(n); go.transform.SetParent(p, false); return go.AddComponent<RectTransform>(); }
 
     TextMeshProUGUI MakeTMP(string n, Transform p, string text)
     {
-        var go  = new GameObject(n);
+        var go = new GameObject(n);
         go.transform.SetParent(p, false);
         var tmp = go.AddComponent<TextMeshProUGUI>();
         tmp.text = text;
+
+        // Settings to reduce blurriness by forcing higher sampling resolution
+        tmp.raycastTarget = false;
+        tmp.extraPadding = true;
+        tmp.enableAutoSizing = true;
+        tmp.fontSizeMin = 5;
+        tmp.fontSizeMax = 500; // Force high internal resolution
+        tmp.geometrySortingOrder = VertexSortingOrder.Normal;
+
         return tmp;
     }
 
-    void Stretch(RectTransform rt)
-    {
-        rt.anchorMin  = Vector2.zero;
-        rt.anchorMax  = Vector2.one;
-        rt.offsetMin  = Vector2.zero;
-        rt.offsetMax  = Vector2.zero;
-        rt.pivot      = Vector2.one * 0.5f;
-    }
-
-    void AddTrigger(EventTrigger et, EventTriggerType type, UnityEngine.Events.UnityAction<BaseEventData> cb)
-    {
-        var entry = new EventTrigger.Entry { eventID = type };
-        entry.callback.AddListener(cb);
-        et.triggers.Add(entry);
-    }
-
-    void PlaySfx(AudioClip clip, float vol = 1f)
-    {
-        if (clip && _sfx) _sfx.PlayOneShot(clip, vol);
-    }
-
+    void Stretch(RectTransform rt) { rt.anchorMin = Vector2.zero; rt.anchorMax = Vector2.one; rt.offsetMin = Vector2.zero; rt.offsetMax = Vector2.zero; rt.pivot = Vector2.one * 0.5f; }
+    void AddTrigger(EventTrigger et, EventTriggerType type, UnityEngine.Events.UnityAction<BaseEventData> cb) { var entry = new EventTrigger.Entry { eventID = type }; entry.callback.AddListener(cb); et.triggers.Add(entry); }
+    void PlaySfx(AudioClip clip, float vol = 1f) { if (clip && _sfx) _sfx.PlayOneShot(clip, vol); }
     #endregion
 }
