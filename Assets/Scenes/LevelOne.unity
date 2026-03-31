@@ -8018,6 +8018,7 @@ GameObject:
   - component: {fileID: 1027569399}
   - component: {fileID: 1027569398}
   - component: {fileID: 1027569397}
+  - component: {fileID: 1027569401}
   m_Layer: 0
   m_Name: CutsceneAudioManager
   m_TagString: Untagged
@@ -8233,9 +8234,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   musicSource: {fileID: 1027569398}
   sfxSource: {fileID: 1027569397}
+  layerSource: {fileID: 1027569401}
   musicSounds:
-  - name: intro
+  - name: intro_bgm
     clip: {fileID: 8300000, guid: d099418cef7342b468f287a226da2279, type: 3}
+  - name: gameplay_layer
+    clip: {fileID: 8300000, guid: 2dc1c1b61fb6be94dae248b5e13ee59c, type: 3}
   sfxSounds:
   - name: beep
     clip: {fileID: 8300000, guid: f2882a2ac4d8954479afa62a42118948, type: 3}
@@ -8256,6 +8260,103 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!82 &1027569401
+AudioSource:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1027569396}
+  m_Enabled: 1
+  serializedVersion: 4
+  OutputAudioMixerGroup: {fileID: 0}
+  m_audioClip: {fileID: 0}
+  m_Resource: {fileID: 0}
+  m_PlayOnAwake: 0
+  m_Volume: 1
+  m_Pitch: 1
+  Loop: 1
+  Mute: 0
+  Spatialize: 0
+  SpatializePostEffects: 0
+  Priority: 128
+  DopplerLevel: 1
+  MinDistance: 1
+  MaxDistance: 500
+  Pan2D: 0
+  rolloffMode: 0
+  BypassEffects: 0
+  BypassListenerEffects: 0
+  BypassReverbZones: 0
+  rolloffCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 1
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  panLevelCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  spreadCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  reverbZoneMixCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
 --- !u!1 &1068520558
 GameObject:
   m_ObjectHideFlags: 0
@@ -10387,9 +10488,10 @@ MonoBehaviour:
   countdownDelay: 1
   postElevatorDelay: 0.5
   ball: {fileID: 643827641}
-  introBGMName: intro
+  introBGMName: intro_bgm
   countdownBeepName: beep
   goSFXName: go
+  gameplayLayerName: gameplay_layer
 --- !u!4 &1355542712
 Transform:
   m_ObjectHideFlags: 0

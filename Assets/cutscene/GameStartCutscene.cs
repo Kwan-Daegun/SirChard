@@ -33,6 +33,7 @@ public class GameStartCutscene : MonoBehaviour
     public string introBGMName;
     public string countdownBeepName;
     public string goSFXName;
+    public string gameplayLayerName;
 
     private bool orbiting = false;
 
@@ -64,7 +65,7 @@ public class GameStartCutscene : MonoBehaviour
         cameraControl.m_MinDistance = introMinDistance;
         cameraControl.m_MaxDistance = introMaxDistance;
 
-        // 🎵 CUTSCENE MUSIC
+        // 🎵 Play intro music
         if (CutsceneAudioManager.Instance != null)
         {
             CutsceneAudioManager.Instance.PlayMusic(introBGMName);
@@ -98,10 +99,10 @@ public class GameStartCutscene : MonoBehaviour
         if (ball != null)
             ball.SetActive(true);
 
-        // Stop cutscene music
+        // 🎵 Start gameplay layer AFTER intro finishes
         if (CutsceneAudioManager.Instance != null)
         {
-            CutsceneAudioManager.Instance.StopMusic();
+            CutsceneAudioManager.Instance.PlayLayerAfterIntro(gameplayLayerName);
         }
 
         // Restore camera
