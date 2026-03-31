@@ -13,6 +13,7 @@ public class PlayerManager : MonoBehaviour
 {
     public EnergyBall energyBall;
     public float pointsPerSecond = 10f;
+    public float pointsPerSecondDecrease = 10f;
 
     public List<PlayerData> players = new List<PlayerData>();
 
@@ -31,20 +32,27 @@ public class PlayerManager : MonoBehaviour
 
     private void Update()
     {
-        if (energyBall == null || energyBall.currentOwner == null) return;
+        if (energyBall == null) return;
+
+        GameObject currentOwner = energyBall.currentOwner;
 
         for (int i = 0; i < players.Count; i++)
         {
-            if (players[i].playerObject == energyBall.currentOwner)
+            if (players[i].playerObject == currentOwner)
             {
                 players[i].score += pointsPerSecond * Time.deltaTime;
+            }
+            else
+            {
+                players[i].score -= pointsPerSecondDecrease * Time.deltaTime;
+            }
 
-                if (GameManager.Instance != null)
-                {
-                    GameManager.Instance.SetPlayerScore(i + 1, players[i].score);
-                }
+            // Prevent score from dropping below zero
+            players[i].score = Mathf.Max(players[i].score, 0f);
 
-                break;
+            if (GameManager.Instance != null)
+            {
+                GameManager.Instance.SetPlayerScore(i + 1, players[i].score);
             }
         }
     }
