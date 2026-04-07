@@ -45,12 +45,23 @@ public class GameStartCutscene : MonoBehaviour
 
     void Start()
     {
-        StartCoroutine(RunCutscene());
+        StartCoroutine(WaitForReadyAndRunCutscene());
+    }
+
+    IEnumerator WaitForReadyAndRunCutscene()
+    {
+        while (!GameState.ArePlayersReady)
+            yield return null;
+
+        yield return StartCoroutine(RunCutscene());
     }
 
     IEnumerator RunCutscene()
     {
         GameState.IsGameplayLocked = true;
+
+        if (elevator != null)
+            elevator.StartElevator();
 
         Camera cam = Camera.main;
 
@@ -76,8 +87,11 @@ public class GameStartCutscene : MonoBehaviour
             ball.SetActive(false);
 
         // 🛗 Wait elevator
-        while (!elevator.IsFinished())
-            yield return null;
+        if (elevator != null)
+        {
+            while (!elevator.IsFinished())
+                yield return null;
+        }
 
         yield return new WaitForSeconds(postElevatorDelay);
 

@@ -13,7 +13,7 @@ public class PlayerManager : MonoBehaviour
 {
     public EnergyBall energyBall;
     public float pointsPerSecond = 10f;
-    public float pointsPerSecondDecrease = 10f;
+    [Range(0f, 1f)] public float deathPenaltyPercent = 0.25f;
 
     public List<PlayerData> players = new List<PlayerData>();
 
@@ -42,10 +42,6 @@ public class PlayerManager : MonoBehaviour
             {
                 players[i].score += pointsPerSecond * Time.deltaTime;
             }
-            else
-            {
-                players[i].score -= pointsPerSecondDecrease * Time.deltaTime;
-            }
 
             // Prevent score from dropping below zero
             players[i].score = Mathf.Max(players[i].score, 0f);
@@ -54,6 +50,26 @@ public class PlayerManager : MonoBehaviour
             {
                 GameManager.Instance.SetPlayerScore(i + 1, players[i].score);
             }
+        }
+    }
+
+    public void ApplyDeathPenalty(GameObject playerObject)
+    {
+        if (playerObject == null) return;
+
+        for (int i = 0; i < players.Count; i++)
+        {
+            if (players[i].playerObject != playerObject) continue;
+
+            float penalty = players[i].score * Mathf.Clamp01(deathPenaltyPercent);
+            players[i].score = Mathf.Max(players[i].score - penalty, 0f);
+
+            if (GameManager.Instance != null)
+            {
+                GameManager.Instance.SetPlayerScore(i + 1, players[i].score);
+            }
+
+            break;
         }
     }
 }

@@ -25,6 +25,7 @@ public class EnergyBall : MonoBehaviour
     public float flySpeed = 10f;
     public float dropPopForce = 5f;
     public float pickupCooldown = 1f;
+    public float maxHoldTime = 10f;
     public GameObject currentOwner;
 
     [Header("Visuals")]
@@ -87,6 +88,7 @@ public class EnergyBall : MonoBehaviour
     // Bob state
     private Vector3 _spawnPos;
     private float _bobTime;
+    private float _holdTimer;
     private bool _hasOwner => currentOwner != null;
 
     // ────────────────────────────────────────────────────────
@@ -119,6 +121,19 @@ public class EnergyBall : MonoBehaviour
                 isFlying = false;
                 StartCoroutine(PickupLandEffect());
             }
+        }
+
+        if (_hasOwner && !isFlying)
+        {
+            _holdTimer += Time.deltaTime;
+            if (_holdTimer >= maxHoldTime)
+            {
+                ReturnToSpawn();
+            }
+        }
+        else if (!_hasOwner)
+        {
+            _holdTimer = 0f;
         }
 
         // ── Tick particles ───────────────────────────────────
@@ -418,6 +433,7 @@ public class EnergyBall : MonoBehaviour
                 currentOwner = hitObj;
                 targetPlaceholder = newPlaceholder;
                 isFlying = true;
+                _holdTimer = 0f;
                 transform.SetParent(null);
 
                 if (rb != null)
@@ -454,6 +470,7 @@ public class EnergyBall : MonoBehaviour
         currentOwner = null;
         targetPlaceholder = null;
         isFlying = false;
+        _holdTimer = 0f;
         transform.SetParent(null);
         canBePickedUp = false;
 
@@ -468,6 +485,32 @@ public class EnergyBall : MonoBehaviour
 
         DropBurstEffect(); // visual effect on drop
 
+        Invoke(nameof(EnablePickup), pickupCooldown);
+    }
+
+    void ReturnToSpawn()
+    {
+        currentOwner = null;
+        targetPlaceholder = null;
+        isFlying = false;
+        _holdTimer = 0f;
+        canBePickedUp = false;
+
+        transform.SetParent(null);
+        transform.position = _spawnPos;
+        transform.rotation = Quaternion.identity;
+
+        if (rb != null)
+        {
+            rb.isKinematic = false;
+            rb.linearVelocity = Vector3.zero;
+            rb.angularVelocity = Vector3.zero;
+        }
+
+        Collider myCol = GetComponent<Collider>();
+        if (myCol != null) myCol.isTrigger = false;
+
+        DropBurstEffect();
         Invoke(nameof(EnablePickup), pickupCooldown);
     }
 

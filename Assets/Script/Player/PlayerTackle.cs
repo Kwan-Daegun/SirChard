@@ -1,5 +1,6 @@
 using System.Collections;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 // ============================================================
 //  PlayerTackle — Added Knockdown Check
@@ -43,6 +44,12 @@ public class PlayerTackle : MonoBehaviour
 
         if (Time.time - _lastTackleTime < tackleCooldown || IsTackling) return;
         StartCoroutine(PerformTackle());
+    }
+
+    public void OnFire(InputAction.CallbackContext context)
+    {
+        if (!context.performed) return;
+        TryTackle();
     }
 
     private IEnumerator PerformTackle()

@@ -9,6 +9,25 @@ public class LEDGravityFloor : MonoBehaviour
     [Tooltip("How high the wind reaches above the floor")]
     public float windHeight = 12f;
 
+    [Header("Wind Timing")]
+    public bool useRandomInterval = false;
+    [Tooltip("How long the wind stays active each cycle")]
+    public float activeDuration = 1.5f;
+    [Tooltip("Used when random interval is off")]
+    public float intervalSeconds = 5f;
+    [Tooltip("Used when random interval is on")]
+    public float minIntervalSeconds = 3f;
+    [Tooltip("Used when random interval is on")]
+    public float maxIntervalSeconds = 7f;
+
+    [Header("Wind VFX")]
+    [Tooltip("Optional particle systems to play only while wind is active")]
+    public ParticleSystem[] windStreakParticles;
+
+    bool windActive = true;
+    float activeTimer;
+    float idleTimer;
+
     void Start()
     {
         // Setup Trigger Zone to cover the floor
@@ -24,10 +43,40 @@ public class LEDGravityFloor : MonoBehaviour
 
         col.center = new Vector3(0, adjustedHeight / 60f, 0);
         col.size = new Vector3(col.size.x, adjustedHeight, col.size.z);
+
+        activeTimer = Mathf.Max(0f, activeDuration);
+        idleTimer = GetNextInterval();
+        ApplyWindVfxState();
+    }
+
+    void Update()
+    {
+        if (windActive)
+        {
+            activeTimer -= Time.deltaTime;
+            if (activeTimer <= 0f)
+            {
+                windActive = false;
+                idleTimer = GetNextInterval();
+                ApplyWindVfxState();
+            }
+        }
+        else
+        {
+            idleTimer -= Time.deltaTime;
+            if (idleTimer <= 0f)
+            {
+                windActive = true;
+                activeTimer = Mathf.Max(0f, activeDuration);
+                ApplyWindVfxState();
+            }
+        }
     }
 
     void OnTriggerStay(Collider other)
     {
+        if (!windActive) return;
+
         Rigidbody rb = other.GetComponent<Rigidbody>();
 
         if (rb != null)
@@ -61,9 +110,42 @@ public class LEDGravityFloor : MonoBehaviour
         }
     }
 
+    float GetNextInterval()
+    {
+        if (useRandomInterval)
+        {
+            float min = Mathf.Max(0f, minIntervalSeconds);
+            float max = Mathf.Max(min, maxIntervalSeconds);
+            return Random.Range(min, max);
+        }
+
+        return Mathf.Max(0f, intervalSeconds);
+    }
+
+    void ApplyWindVfxState()
+    {
+        if (windStreakParticles == null) return;
+
+        foreach (ParticleSystem ps in windStreakParticles)
+        {
+            if (ps == null) continue;
+
+            if (windActive)
+            {
+                if (!ps.isPlaying)
+                    ps.Play(true);
+            }
+            else
+            {
+                if (ps.isPlaying)
+                    ps.Stop(true, ParticleSystemStopBehavior.StopEmitting);
+            }
+        }
+    }
+
     void OnDrawGizmos()
     {
-        Gizmos.color = new Color(1, 1, 1, 0.1f);
+        Gizmos.color = windActive ? new Color(0.3f, 1f, 0.3f, 0.12f) : new Color(1f, 0.3f, 0.3f, 0.08f);
         BoxCollider col = GetComponent<BoxCollider>();
         if (col != null)
         {

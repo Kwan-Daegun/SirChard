@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.UI;
 using TMPro;
 using UnityEngine.UI;
+using UnityEngine.EventSystems;
 
 // ============================================================
 //  GameManager — Continuous Score + Custom Names + Pop Effect
@@ -88,6 +90,7 @@ public class GameManager : MonoBehaviour
 
         SpawnPlayers();
 
+        EnsureEventSystem();
         BuildCanvas();
         BuildHUD();
         BuildPausePanel();
@@ -305,6 +308,15 @@ public class GameManager : MonoBehaviour
         go.AddComponent<GraphicRaycaster>();
     }
 
+    void EnsureEventSystem()
+    {
+        if (FindAnyObjectByType<EventSystem>() != null) return;
+
+        var es = new GameObject("EventSystem");
+        es.AddComponent<EventSystem>();
+        es.AddComponent<InputSystemUIInputModule>();
+    }
+
     // ── HUD PANEL ───────────────────────────────────────────
 
     void BuildHUD()
@@ -382,7 +394,7 @@ public class GameManager : MonoBehaviour
         MakeButton(_pausePanel.transform, "CONTROLS", ColAccentB, new Vector2(0f, -80f), ShowControls);
         MakeButton(_pausePanel.transform, "CREDITS", ColAccentB, new Vector2(0f, -160f), ShowCredits);
         MakeButton(_pausePanel.transform, "RESTART", ColAccentC, new Vector2(0f, -240f), RestartGame);
-        MakeButton(_pausePanel.transform, "QUIT", ColRed, new Vector2(0f, -320f), QuitGame);
+        MakeButton(_pausePanel.transform, "QUIT", ColRed, new Vector2(0f, -320f), GoToMainMenu);
 
         MakeBrackets(_pausePanel.transform, ColAccentA);
         MakeScanlines(_pausePanel.transform);
@@ -614,6 +626,7 @@ public class GameManager : MonoBehaviour
         if (cg) StartCoroutine(FadeIn(cg));
         var rt = panel.GetComponent<RectTransform>();
         if (rt) StartCoroutine(SlideIn(rt));
+        FocusFirstButton(panel);
     }
 
     IEnumerator FadeIn(CanvasGroup cg)
@@ -652,6 +665,9 @@ public class GameManager : MonoBehaviour
         if (_winPanel) _winPanel.SetActive(false);
         if (_losePanel) _losePanel.SetActive(false);
         _activePanel = null;
+
+        if (EventSystem.current != null)
+            EventSystem.current.SetSelectedGameObject(null);
     }
 
     #endregion
@@ -877,6 +893,15 @@ public class GameManager : MonoBehaviour
             rt.localScale = Vector3.Lerp(ss, Vector3.one * ts, p);
             yield return null;
         }
+    }
+
+    void FocusFirstButton(GameObject panel)
+    {
+        if (EventSystem.current == null || panel == null) return;
+
+        Button firstButton = panel.GetComponentInChildren<Button>();
+        if (firstButton != null && firstButton.gameObject.activeInHierarchy)
+            EventSystem.current.SetSelectedGameObject(firstButton.gameObject);
     }
 
     void MakeControlRow(Transform parent, string actionLabel, string keyLabel, float y)

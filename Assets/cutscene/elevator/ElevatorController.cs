@@ -19,16 +19,14 @@ public class ElevatorController : MonoBehaviour
     {
         startPos = transform.position;
         endPos = startPos + Vector3.up * height;
-
-        // Disable arena collider at start
-        if (arenaCollider != null)
-            arenaCollider.enabled = false;
-
-        StartElevator();
     }
 
     public void StartElevator()
     {
+        // Disable arena collider only while the lift is actually moving.
+        if (arenaCollider != null)
+            arenaCollider.enabled = false;
+
         timer = 0f;
         isMoving = true;
         finished = false;

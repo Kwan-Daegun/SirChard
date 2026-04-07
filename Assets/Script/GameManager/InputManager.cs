@@ -71,6 +71,8 @@ public class InputManager : MonoBehaviour
 
     void Start()
     {
+        GameState.ResetPregame();
+
         AssignControllers();
         SetupPlayerPanels();
 
@@ -326,6 +328,7 @@ public class InputManager : MonoBehaviour
     void StartGame()
     {
         gameStarted = true;
+        GameState.ArePlayersReady = true;
 
         Debug.Log("GAME START");
 

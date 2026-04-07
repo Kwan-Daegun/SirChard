@@ -34,6 +34,12 @@ public class PlayerRespawn : MonoBehaviour
         }
         // --- BALL LOGIC END ---
 
+        PlayerManager playerManager = FindFirstObjectByType<PlayerManager>();
+        if (playerManager != null)
+        {
+            playerManager.ApplyDeathPenalty(gameObject);
+        }
+
         // Teleport Player
         rb.position = startPosition;
         transform.position = startPosition;
