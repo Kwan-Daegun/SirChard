@@ -328,13 +328,13 @@ public class MainMenuController : MonoBehaviour
 
         string[] credits = {
             "GAME DESIGN",
-            "YOUR NAME HERE",
+            "Atamante, Zagada",
             "",
             "PROGRAMMING",
-            "YOUR NAME HERE",
+            "Atamante, Zagada, Rufo, Buenafe, Senson",
             "",
             "ART & VISUALS",
-            "YOUR NAME HERE",
+            "Buenafe, Senson, Rufo",
         };
 
         for (int i = 0; i < credits.Length; i++)
